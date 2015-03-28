@@ -2,8 +2,8 @@
 
 This is an OctoPrint Plugin that adds support for [MQTT](http://mqtt.org/) to OctoPrint.
 
-Out of the box OctoPrint will send all [event](http://docs.octoprint.org/en/devel/events/index.html#available-events)
-including their payloads to the topic `octoprint/event/<event>`, where `<event>` is the corresponding event. The message
+Out of the box OctoPrint will send all [events](http://docs.octoprint.org/en/devel/events/index.html#available-events)
+including their payloads to the topic `octoprint/event/<event>`, where `<event>` will be the name of the event. The message
 payload will be a JSON representation of the event's payload, with an additional property `_event` containing the name
 of the event.
 
@@ -16,7 +16,7 @@ Examples:
 | octoprint/event/PrintStarted | `{"origin": "local", "_event": "PrintStarted", "file":"/home/pi/.octoprint/uploads/case_bp_3.6.v1.0.gco", "filename": "case_bp_3.6.v1.0.gco"}` |
 
 The plugin however also offers several helpers that allow other plugins to both publish as well as subscribe to
-MQTT topics, see below.
+MQTT topics, see below for details and a usage example.
 
 ## Installation
 
@@ -131,6 +131,14 @@ class MqttTestPlugin(octoprint.plugin.StartupPlugin):
 
 __plugin_implementations__ = [MqttTestPlugin()]
 ```
+
+## TODO
+
+  * Add support for allowing SSL connections to brokers
+  * Allow to specify the MQTT protocol version to use
+  * Add LWT
+  * Generate client identifier based on OctoPrint instance
+  * Placeholders in base topic to distinguish between instances by path?
 
 ## Acknowledgements & Licensing
 
