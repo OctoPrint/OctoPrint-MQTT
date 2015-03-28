@@ -42,7 +42,7 @@ plugins:
             url: 127.0.0.1
 
             # the broker's port
-            port: 1883
+            #port: 1883
 
             # the username to use to connect with the broker, if not set no user
             # credentials will be sent
@@ -57,11 +57,11 @@ plugins:
 
         publish:
             # base topic under which to publish OctoPrint's messages
-            baseTopic: octoprint/
+            #baseTopic: octoprint/
 
             # topic for events, appended to the base topic, '{event}' will
             # be substituted with the event name
-            eventTopic: event/{event}
+            #eventTopic: event/{event}
 ```
 
 ## Helpers
