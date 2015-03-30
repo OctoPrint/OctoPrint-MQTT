@@ -20,6 +20,11 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		self._mqtt_publish_queue = deque()
 		self._mqtt_subscribe_queue = deque()
 
+	def initialize(self):
+		if self._settings.get(["broker", "url"]) is None:
+			self._logger.error("No broker URL defined, MQTT plugin won't be able to work")
+			return False
+
 	##~~ StartupPlugin API
 
 	def on_startup(self, host, port):
@@ -54,7 +59,10 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
 		if topic:
 			import json
-			data = dict(payload)
+			if payload is None:
+				data = dict()
+			else:
+				data = dict(payload)
 			data["_event"] = event
 			self.mqtt_publish(topic.format(event=event), json.dumps(data))
 
@@ -68,6 +76,9 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		broker_username = self._settings.get(["broker", "username"])
 		broker_password = self._settings.get(["broker", "password"])
 		broker_keepalive = self._settings.get_int(["broker", "keepalive"])
+
+		if broker_url is None:
+			return
 
 		import paho.mqtt.client as mqtt
 
@@ -212,5 +223,5 @@ def __plugin_init__():
 		mqtt_unsubscribe=plugin.mqtt_unsubscribe
 	)
 
-	global __plugin_implementations__
-	__plugin_implementations__ = [plugin]
+	global __plugin_implementation__
+	__plugin_implementation__ = plugin
