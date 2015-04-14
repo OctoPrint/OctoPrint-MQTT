@@ -213,7 +213,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
 __plugin_name__ = "mqtt"
 
-def __plugin_init__():
+def __plugin_load__():
 	plugin = MqttPlugin()
 
 	global __plugin_helpers__
