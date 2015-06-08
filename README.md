@@ -20,14 +20,9 @@ MQTT topics, see below for details and a usage example.
 
 ## Installation
 
-Install the plugin like you would install any regular Python package from source:
+Install via the bundled [Plugin Manager](https://github.com/foosel/OctoPrint/wiki/Plugin:-Plugin-Manager) using this URL:
 
-    pip install https://github.com/OctoPrint/OctoPrint-MQTT/archive/master.zip
-
-Make sure you use the same Python environment that you installed OctoPrint under, otherwise the plugin
-won't be able to satisfy its dependencies.
-
-Restart OctoPrint. `octoprint.log` should show you that the plugin was successfully found and loaded.
+    https://github.com/OctoPrint/OctoPrint-MQTT/archive/master.zip
 
 ## Configuration
 
