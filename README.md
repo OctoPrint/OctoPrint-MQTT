@@ -50,6 +50,23 @@ plugins:
             # the keepalive value for the broker connection
             #keepalive: 60
 
+            # tls settings
+            #tls:
+                # path to the server's certificate file
+                #ca_certs: unset
+
+                # paths to the PEM encoded client certificate and private keys
+                # respectively, must not be password protected, only necessary
+                # if broker requires client certificate authentication
+                #certfile: unset
+                #keyfile: unest
+
+                # a string specifying which encryption ciphers are allowable for this connection
+                #ciphers: unset
+
+            # configure verification of the server hostname in the server certificate.
+            #tls_insecure: false
+
         publish:
             # base topic under which to publish OctoPrint's messages
             #baseTopic: octoprint/
