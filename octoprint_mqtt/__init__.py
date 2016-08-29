@@ -179,7 +179,9 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 				pass
 
 		subbed_topics = list(map(lambda t: (t, 0), {topic for topic, _, _, _ in self._mqtt_subscriptions}))
-		self._mqtt.subscribe(subbed_topics)
+		if subbed_topics:
+			self._mqtt.subscribe(subbed_topics)
+			self._logger.debug("Subscribed to topics")
 
 		self._mqtt_connected = True
 
