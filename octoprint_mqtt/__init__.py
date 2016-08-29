@@ -44,7 +44,9 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 				port=1883,
 				username=None,
 				password=None,
-				keepalive=60
+				keepalive=60,
+				tls=dict(),
+				tls_insecure=False
 			),
 			publish=dict(
 				baseTopic="octoprint/",
@@ -69,13 +71,15 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 	##~~ helpers
 
 	def mqtt_connect(self):
-		# TODO TLS, LWT, protocol
+		# TODO LWT, protocol
 
 		broker_url = self._settings.get(["broker", "url"])
 		broker_port = self._settings.get_int(["broker", "port"])
 		broker_username = self._settings.get(["broker", "username"])
 		broker_password = self._settings.get(["broker", "password"])
 		broker_keepalive = self._settings.get_int(["broker", "keepalive"])
+		broker_tls = self._settings.get(["broker", "tls"], asdict=True)
+		broker_tls_insecure = self._settings.get_boolean(["broker", "tls_insecure"])
 
 		if broker_url is None:
 			return
@@ -87,6 +91,12 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
 		if broker_username is not None:
 			self._mqtt.username_pw_set(broker_username, password=broker_password)
+
+		if broker_tls:
+			self._mqtt.tls_set(**broker_tls)
+
+		if broker_tls_insecure is not None:
+			self._mqtt.tls_insecure_set(broker_tls_insecure)
 
 		self._mqtt.on_connect = self._on_mqtt_connect
 		self._mqtt.on_disconnect = self._on_mqtt_disconnect
