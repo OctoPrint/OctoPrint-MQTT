@@ -74,6 +74,10 @@ plugins:
             # topic for events, appended to the base topic, '{event}' will
             # be substituted with the event name
             #eventTopic: event/{event}
+
+            # topic for print and slicer progress, appended to the base topic, 
+            # '{progress}' will be substituted with either 'printing' or 'slicing'
+            #progressTopic: progress/{progress}
 ```
 
 ## Helpers

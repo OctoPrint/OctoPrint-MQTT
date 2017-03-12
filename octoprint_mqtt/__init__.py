@@ -9,7 +9,8 @@ import octoprint.plugin
 class MqttPlugin(octoprint.plugin.SettingsPlugin,
                  octoprint.plugin.StartupPlugin,
                  octoprint.plugin.ShutdownPlugin,
-                 octoprint.plugin.EventHandlerPlugin):
+                 octoprint.plugin.EventHandlerPlugin,
+                 octoprint.plugin.ProgressPlugin):
 
 	def __init__(self):
 		self._mqtt = None
@@ -51,6 +52,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			publish=dict(
 				baseTopic="octoprint/",
 				eventTopic="event/{event}",
+				progressTopic="progress/{progress}"
 			)
 		)
 
@@ -67,6 +69,33 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 				data = dict(payload)
 			data["_event"] = event
 			self.mqtt_publish(topic.format(event=event), json.dumps(data))
+			
+	##~~ ProgressPlugin API
+	
+	def on_print_progress(self, storage, path, progress):
+		topic = self._get_topic("progress")
+		
+		if topic:
+			import json
+			data = dict(
+				_location=storage,
+				_path=path,
+				_progress=progress)
+			self.mqtt_publish(topic.format(progress="printing"), json.dumps(data), retained=True)
+			
+	def on_slicing_progress(self, slicer, source_location, source_path, destination_location, destination_path, progress):
+		topic = self._get_topic("progress")
+		
+		if topic:
+			import json
+			data = dict(
+				_slicer=slicer,
+				_source_location=source_location,
+				_source_path=source_path,
+				_destination_location=destination_location,
+				_destination_path=destination_path,
+				_progress=progress)
+			self.mqtt_publish(topic.format(progress="slicing"), json.dumps(data), retained=True)
 
 	##~~ helpers
 
