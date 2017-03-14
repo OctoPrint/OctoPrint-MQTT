@@ -47,7 +47,8 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 				password=None,
 				keepalive=60,
 				tls=dict(),
-				tls_insecure=False
+				tls_insecure=False,
+				protocol="MQTTv31"
 			),
 			publish=dict(
 				baseTopic="octoprint/",
@@ -109,14 +110,22 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		broker_keepalive = self._settings.get_int(["broker", "keepalive"])
 		broker_tls = self._settings.get(["broker", "tls"], asdict=True)
 		broker_tls_insecure = self._settings.get_boolean(["broker", "tls_insecure"])
+		broker_protocol = self._settings.get(["broker", "protocol"])
 
 		if broker_url is None:
 			return
 
 		import paho.mqtt.client as mqtt
 
+		protocol_map = dict(MQTTv31=mqtt.MQTTv31,
+		                    MQTTv311=mqtt.MQTTv311)
+		if broker_protocol in protocol_map:
+			protocol = protocol_map[broker_protocol]
+		else:
+			protocol = mqtt.MQTTv31
+
 		if self._mqtt is None:
-			self._mqtt = mqtt.Client()
+			self._mqtt = mqtt.Client(protocol=protocol)
 
 		if broker_username is not None:
 			self._mqtt.username_pw_set(broker_username, password=broker_password)
