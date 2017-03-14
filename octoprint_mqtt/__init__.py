@@ -271,7 +271,10 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			if topic_matches_sub(topic, msg.topic):
 				args = [msg.topic, msg.payload] + args
 				kwargs.update(dict(retained=msg.retain, qos=msg.qos))
-				callback(*args, **kwargs)
+				try:
+					callback(*args, **kwargs)
+				except:
+					self._logger.exception("Error while calling mqtt callback")
 
 	def _get_topic(self, topic_type):
 		sub_topic = self._settings.get(["publish", topic_type + "Topic"])
