@@ -15,8 +15,24 @@ Examples:
 | octoprint/event/Connected    | `{"baudrate": 250000, "_event": "Connected", "port": "VIRTUAL"}` |
 | octoprint/event/PrintStarted | `{"origin": "local", "_event": "PrintStarted", "file":"/home/pi/.octoprint/uploads/case_bp_3.6.v1.0.gco", "filename": "case_bp_3.6.v1.0.gco"}` |
 
+The print progress and the slicing progress will also be send to the topic `octoprint/progress/printing` and
+`octoprint/progress/slicing` respectively. The payload will contain the `progress` as an integer between 0 and 100.
+Print progress will also contain information about the currently printed file (storage `location` and `path` on storage),
+slicing progress will contain information about the currently sliced file (storage `source_location` and `destination_location`,
+`source_path` and `destination_path` on storage, used `slicer`). The published progress messages will be marked as
+retained.
+
+Examples:
+
+| Topic                        | Message                                                          |
+|------------------------------|------------------------------------------------------------------|
+| octoprint/progress/printing  | `{"progress": 23, "location": "local", "path": "test.gco"}`      |
+| octoprint/progress/slicing   | `{"progress": 42, "source_location": "local", "source_path": "test.stl", "destination_location": "local", "destination_path": "test.gcode", "slicer": "cura"}` |
+
 The plugin however also offers several helpers that allow other plugins to both publish as well as subscribe to
 MQTT topics, see below for details and a usage example.
+
+{"_destination_location": "local", "_progress": 100, "_destination_path": "50by50by20.gco", "_source_path": "50by50by20.stl", "_source_location": "local", "_slicer": "cura"}
 
 ## Installation
 
@@ -59,13 +75,16 @@ plugins:
                 # respectively, must not be password protected, only necessary
                 # if broker requires client certificate authentication
                 #certfile: unset
-                #keyfile: unest
+                #keyfile: unset
 
                 # a string specifying which encryption ciphers are allowable for this connection
                 #ciphers: unset
 
             # configure verification of the server hostname in the server certificate.
             #tls_insecure: false
+
+            # configure protocol version to use, valid values: MQTTv31 and MQTTv311
+            #protocol: MQTTv31
 
         publish:
             # base topic under which to publish OctoPrint's messages
@@ -150,8 +169,6 @@ __plugin_implementations__ = [MqttTestPlugin()]
 
 ## TODO
 
-  * Add support for allowing SSL connections to brokers
-  * Allow to specify the MQTT protocol version to use
   * Add LWT
   * Generate client identifier based on OctoPrint instance
   * Placeholders in base topic to distinguish between instances by path?
