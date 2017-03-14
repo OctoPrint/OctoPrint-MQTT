@@ -70,7 +70,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 				data = dict(payload)
 			data["_event"] = event
 			self.mqtt_publish(topic.format(event=event), json.dumps(data))
-			
+
 	##~~ ProgressPlugin API
 	
 	def on_print_progress(self, storage, path, progress):
@@ -78,10 +78,9 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		
 		if topic:
 			import json
-			data = dict(
-				_location=storage,
-				_path=path,
-				_progress=progress)
+			data = dict(location=storage,
+			            path=path,
+			            progress=progress)
 			self.mqtt_publish(topic.format(progress="printing"), json.dumps(data), retained=True)
 			
 	def on_slicing_progress(self, slicer, source_location, source_path, destination_location, destination_path, progress):
@@ -89,13 +88,12 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		
 		if topic:
 			import json
-			data = dict(
-				_slicer=slicer,
-				_source_location=source_location,
-				_source_path=source_path,
-				_destination_location=destination_location,
-				_destination_path=destination_path,
-				_progress=progress)
+			data = dict(slicer=slicer,
+			            source_location=source_location,
+			            source_path=source_path,
+			            destination_location=destination_location,
+			            destination_path=destination_path,
+			            progress=progress)
 			self.mqtt_publish(topic.format(progress="slicing"), json.dumps(data), retained=True)
 
 	##~~ Softwareupdate hook
