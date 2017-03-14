@@ -32,8 +32,6 @@ Examples:
 The plugin however also offers several helpers that allow other plugins to both publish as well as subscribe to
 MQTT topics, see below for details and a usage example.
 
-{"_destination_location": "local", "_progress": 100, "_destination_path": "50by50by20.gco", "_source_path": "50by50by20.stl", "_source_location": "local", "_slicer": "cura"}
-
 ## Installation
 
 Install via the bundled [Plugin Manager](https://github.com/foosel/OctoPrint/wiki/Plugin:-Plugin-Manager) using this URL:
