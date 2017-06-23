@@ -10,7 +10,9 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
                  octoprint.plugin.StartupPlugin,
                  octoprint.plugin.ShutdownPlugin,
                  octoprint.plugin.EventHandlerPlugin,
-                 octoprint.plugin.ProgressPlugin):
+                 octoprint.plugin.ProgressPlugin,
+                 octoprint.plugin.TemplatePlugin,
+                 octoprint.plugin.AssetPlugin):
 
 	def __init__(self):
 		self._mqtt = None
@@ -25,6 +27,18 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		if self._settings.get(["broker", "url"]) is None:
 			self._logger.error("No broker URL defined, MQTT plugin won't be able to work")
 			return False
+
+	##~~ TemplatePlugin API
+
+	def get_template_configs(self):
+		return [
+			dict(type="settings", name="MQTT")
+		]
+
+	##~~ AssetPlugin API
+
+	def get_assets(self):
+		return dict(js=["js/octoprint_mqtt.js"])
 
 	##~~ StartupPlugin API
 
