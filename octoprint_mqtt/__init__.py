@@ -38,7 +38,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 	##~~ AssetPlugin API
 
 	def get_assets(self):
-		return dict(js=["js/octoprint_mqtt.js"])
+		return dict(js=["js/mqtt.js"])
 
 	##~~ StartupPlugin API
 
@@ -164,7 +164,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		if broker_tls:
 			self._mqtt.tls_set(**broker_tls)
 
-		if broker_tls_insecure is not None:
+		if broker_tls_insecure is not None and broker_tls:
 			self._mqtt.tls_insecure_set(broker_tls_insecure)
 
 		self._mqtt.on_connect = self._on_mqtt_connect
