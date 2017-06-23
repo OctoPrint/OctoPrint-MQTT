@@ -8,7 +8,7 @@ $(function() {
         self.availableProtocols = ko.observableArray(['MQTTv31','MQTTv311']);
       
         self.onBeforeBinding = function () {
-            self.settings = self.global_settings.settings.plugins.octoprint_mqtt;
+            self.settings = self.global_settings.settings.plugins.mqtt;
         };
     }
 
