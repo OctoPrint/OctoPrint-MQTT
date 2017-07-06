@@ -132,7 +132,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 	##~~ helpers
 
 	def mqtt_connect(self):
-		# TODO LWT, protocol
+		# TODO LWT
 
 		broker_url = self._settings.get(["broker", "url"])
 		broker_port = self._settings.get_int(["broker", "port"])
@@ -161,10 +161,15 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		if broker_username is not None:
 			self._mqtt.username_pw_set(broker_username, password=broker_password)
 
+		tls_active = False
 		if broker_tls:
-			self._mqtt.tls_set(**broker_tls)
+			tls_args = dict((key, value) for key, value in broker_tls.items() if value)
+			ca_certs = tls_args.pop("ca_certs", None)
+			if ca_certs: # cacerts must not be None for tls_set to work
+				self._mqtt.tls_set(ca_certs, **tls_args)
+				tls_active = True
 
-		if broker_tls_insecure is not None and broker_tls:
+		if broker_tls_insecure and tls_active:
 			self._mqtt.tls_insecure_set(broker_tls_insecure)
 
 		self._mqtt.on_connect = self._on_mqtt_connect
