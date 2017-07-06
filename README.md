@@ -40,8 +40,8 @@ Install via the bundled [Plugin Manager](https://github.com/foosel/OctoPrint/wik
 
 ## Configuration
 
-The plugin currently offers no settings dialog, configuration needs to be done by manually editing `config.yaml`. The
-following options are available:
+The plugin offers a settings dialog that allows you to configure all relevant settings. If you want to configure things
+manually by editing `config.yaml`, this is the structure you'd find therein:
 
 ``` yaml
 plugins:
