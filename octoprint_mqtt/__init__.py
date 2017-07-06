@@ -300,7 +300,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
 		return self._settings.get(["publish", "baseTopic"]) + sub_topic
 
-__plugin_name__ = "mqtt"
+__plugin_name__ = "MQTT"
 
 def __plugin_load__():
 	plugin = MqttPlugin()
