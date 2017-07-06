@@ -1,17 +1,13 @@
 <form class="form-horizontal" id="settings_plugin_mqtt">
-	<h3>MQTT settings</h3>
-	<p><strong>{{ _('If you need help on setting up this plugin, please have a look at <a href="https://github.com/OctoPrint/OctoPrint-MQTT/blob/master/README.md" target="_blank">the documentation on github</a>.') }}</strong></p>
+	<p>{{ _('If you need help on setting up this plugin, please have a look at <a href="%(url)s" target="_blank">the documentation on Github</a>.', url = "https://github.com/OctoPrint/OctoPrint-MQTT/blob/master/README.md") }}</p>
 	
-	<hr>
-
-	<!-- BROKER SETTINGS -->
-	<h4>Broker</h4>
+	<h3>{{ _('Broker') }}</h3>
 
 	<div class="control-group">
-		<label class="control-label">{{ _('URL/IP') }}</label>
+		<label class="control-label">{{ _('Host') }}</label>
 		<div class="controls">
 			<input type="text" class="input-large" id="settings_plugin_mqtt_broker_url" data-bind="value: settings.broker.url" />
-			<span class="help-block"><small>The broker's url, mandatory, if not configured the plugin will do nothing</small></span>
+			<span class="help-block">{{ _('The broker\'s URL or IP. Mandatory, if not configured the plugin will do nothing.') }}</span>
 		</div>
 	</div>
 
@@ -19,24 +15,15 @@
 		<label class="control-label">{{ _('Port') }}</label>
 		<div class="controls">
 			<input type="number" class="input-mini text-right" id="settings_plugin_mqtt_broker_port" data-bind="value: settings.broker.port" />
-			<span class="help-block"><small>The broker's port (default 1883)</small></span>
-		</div>
-	</div>
-	
-
-	<div class="control-group">
-		<label class="control-label">{{ _('Username') }}</label>
-		<div class="controls">
-			<input type="text" class="input-large" id="settings_plugin_mqtt_broker_username" data-bind="value: settings.broker.username" />
-			<span class="help-block"><small>The username to use to connect with the broker, if not set no user credentials will be sent</small></span>
+			<span class="help-block">{{ _('The broker\'s port, defaults to 1883.') }}</span>
 		</div>
 	</div>
 
 	<div class="control-group">
-		<label class="control-label">{{ _('Password') }}</label>
+		<label class="control-label">{{ _('Protocol version') }}</label>
 		<div class="controls">
-			<input type="text" class="input-large" id="settings_plugin_mqtt_broker_password" data-bind="value: settings.broker.password" />
-			<span class="help-block"><small>The password to use to connect with the broker, only used if a username is supplied too</small></span>
+			<select class="input-medium" id="settings_plugin_mqtt_broker_protocol" data-bind="options: $root.availableProtocols, value: settings.broker.protocol"></select>
+			<span class="help-block">{{ _('Protocol version to use, defaults to <code>MQTTv31</code>.') }}</span>
 		</div>
 	</div>
 
@@ -47,68 +34,97 @@
 				<input type="number" class="input-mini text-right" id="settings_plugin_mqtt_broker_keepalive" data-bind="value: settings.broker.keepalive" />
 				<span class="add-on">sec</span>
 			</div>
-			<span class="help-block"><small>The keepalive value for the broker connection</small></span>
+			<span class="help-block">{{ _('The keepalive value for the broker connection') }}</span>
 		</div>
 	</div>
 
 	<div class="control-group">
-		<label class="control-label">{{ _('TLS CA certs') }}</label>
 		<div class="controls">
-			<input type="text" class="input-large" id="settings_plugin_mqtt_broker_tls_caCerts" data-bind="value: settings.broker.tls.ca_certs" />
-			<span class="help-block"><small>Path to the server's certificate file</small></span>
+			<label class="checkbox">
+				<input type="checkbox" data-bind="checked: showUserCredentials"> {{ _('The broker requires username and password to connect, show options') }}
+			</label>
+		</div>
+	</div>
+
+	<div data-bind="visible: showUserCredentials" style="display: none">
+		<div class="control-group">
+			<label class="control-label">{{ _('Username') }}</label>
+			<div class="controls">
+				<input type="text" class="input-large" id="settings_plugin_mqtt_broker_username" data-bind="value: settings.broker.username" />
+				<span class="help-block">{{ _('The username to use to connect with the broker, if not set no user credentials will be sent') }}</span>
+			</div>
+		</div>
+
+		<div class="control-group">
+			<label class="control-label">{{ _('Password') }}</label>
+			<div class="controls">
+				<input type="text" class="input-large" id="settings_plugin_mqtt_broker_password" data-bind="value: settings.broker.password" />
+				<span class="help-block">{{ _('The password to use to connect with the broker, only used if a username is supplied too') }}</span>
+			</div>
 		</div>
 	</div>
 
 	<div class="control-group">
-		<label class="control-label">{{ _('TLS certfile') }}</label>
 		<div class="controls">
-			<input type="text" class="input-large" id="settings_plugin_mqtt_broker_tls_certfile" data-bind="value: settings.broker.tls.certfile" />
-			<span class="help-block"><small>Paths to the PEM encoded client certificate, must not be password protected, only necessary if broker requires client certificate authentication</small></span>
+			<label class="checkbox">
+				<input type="checkbox" data-bind="checked: showSsl"> {{ _('The broker requires TLS to connect, show SSL/TLS options') }}
+			</label>
+		</div>
+	</div>
+	<div data-bind="visible: showSsl" style="display: none">
+		<div class="control-group">
+			<label class="control-label">{{ _('Path to server certificate chain') }}</label>
+			<div class="controls">
+				<input type="text" class="input-large" id="settings_plugin_mqtt_broker_tls_caCerts" data-bind="value: settings.broker.tls.ca_certs" />
+				<span class="help-block">{{ _('Path to the server\'s certificate chain file. Mandatory, required for TLS to work.') }}</span>
+			</div>
+		</div>
+
+		<div class="control-group">
+			<label class="control-label">{{ _('Path to client certificate') }}</label>
+			<div class="controls">
+				<input type="text" class="input-large" id="settings_plugin_mqtt_broker_tls_certfile" data-bind="value: settings.broker.tls.certfile" />
+				<span class="help-block">{{ _('Paths to the PEM encoded client certificate, <strong>must not be password protected</strong>, only necessary if broker requires client certificate authentication.') }}</span>
+			</div>
+		</div>
+
+		<div class="control-group">
+			<label class="control-label">{{ _('Path to client key') }}</label>
+			<div class="controls">
+				<input type="text" class="input-large" id="settings_plugin_mqtt_broker_tls_keyfile" data-bind="value: settings.broker.tls.keyfile" />
+				<span class="help-block">{{ _('Paths to the PEM encoded private keys, <strong>must not be password protected</strong>, only necessary if broker requires client certificate authentication.') }}</span>
+			</div>
+		</div>
+
+		<div class="advanced-options-container">
+			<div><small><a href="#" class="muted" data-bind="toggleContent: { class: 'fa-caret-right fa-caret-down', parent: '.advanced-options-container', container: '.hide' }"><i class="fa fa-caret-right"></i> {{ _('Advanced TLS options') }}</a></small></div>
+			<div class="hide">
+				<div class="control-group">
+					<label class="control-label">{{ _('Ciphers') }}</label>
+					<div class="controls">
+						<input type="text" class="input-large" id="settings_plugin_mqtt_broker_tls_ciphers" data-bind="value: settings.broker.tls.ciphers" />
+						<span class="help-block">{{ _('A string specifying which encryption ciphers are allowable for this connection. See <a href="%(url)s" target="_blank">the OpenSSL documentation on ciphers</a>.', url = "https://www.openssl.org/docs/manmaster/man1/ciphers.html") }}</span>
+					</div>
+				</div>
+
+				<div class="control-group">
+					<div class="controls">
+						<label class="checkbox">
+							<input type="checkbox" data-bind="checked: settings.tls_insecure" /> {{ _('Do not verify the server hostname in the server certificate') }} <span class="label label-important">Caution</span>
+						</label>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 
-	<div class="control-group">
-		<label class="control-label">{{ _('TLS keyfile') }}</label>
-		<div class="controls">
-			<input type="text" class="input-large" id="settings_plugin_mqtt_broker_tls_keyfile" data-bind="value: settings.broker.tls.keyfile" />
-			<span class="help-block"><small>Paths to the PEM encoded private keys, must not be password protected, only necessary if broker requires client certificate authentication</small></span>
-		</div>
-	</div>
-
-	<div class="control-group">
-		<label class="control-label">{{ _('TLS ciphers') }}</label>
-		<div class="controls">
-			<input type="text" class="input-large" id="settings_plugin_mqtt_broker_tls_ciphers" data-bind="value: settings.broker.tls.ciphers" />
-			<span class="help-block"><small>A string specifying which encryption ciphers are allowable for this connection</small></span>
-		</div>
-	</div>
-
-	<div class="control-group">
-		<label class="control-label">{{ _('TLS insecure') }}</label>
-		<div class="controls">
-				<input type="checkbox" data-bind="checked: settings.tls_insecure" /> 
-			<span class="help-block"><small>Configure verification of the server hostname in the server certificate</small></span>
-		</div>
-	</div>
-
-	<div class="control-group">
-		<label class="control-label">{{ _('Protocol') }}</label>
-		<div class="controls">
-			<select class="input-medium" id="settings_plugin_mqtt_broker_protocol" data-bind="options: $root.availableProtocols, value: settings.broker.protocol"></select>
-			<span class="help-block"><small>Configure protocol version to use, valid values: MQTTv31 and MQTTv311</small></span>
-		</div>
-	</div>
-
-	<hr>
-
-	<!-- PUBLISH SETTINGS -->
-	<h4>Publish</h4>
+	<h3>{{ _('Topics') }}</h3>
 
 	<div class="control-group">
 		<label class="control-label">{{ _('Base topic') }}</label>
 		<div class="controls">
 			<input type="text" class="input-large" id="settings_plugin_mqtt_publish_baseTopic" data-bind="value: settings.publish.baseTopic" />
-			<span class="help-block"><small>Base topic under which to publish OctoPrint's messages</small></span>
+			<span class="help-block">{{ _('Base topic under which to publish OctoPrint\'s messages') }}</span>
 		</div>
 	</div>
 
@@ -116,7 +132,7 @@
 		<label class="control-label">{{ _('Event topic') }}</label>
 		<div class="controls">
 			<input type="text" class="input-large" id="settings_plugin_mqtt_publish_eventTopic" data-bind="value: settings.publish.eventTopic" />
-			<span class="help-block"><small>Topic for events, appended to the base topic, '{event}' will be substituted with the event name</small></span>
+			<span class="help-block">{{ _('Topic for events, appended to the base topic, <code>{event}</code> will be substituted with the event name') }}</span>
 		</div>
 	</div>
 
@@ -124,7 +140,7 @@
 		<label class="control-label">{{ _('Progress topic') }}</label>
 		<div class="controls">
 			<input type="text" class="input-large" id="settings_plugin_mqtt_publish_progressTopic" data-bind="value: settings.publish.progressTopic" />
-			<span class="help-block"><small>Topic for print and slicer progress, appended to the base topic, '{progress}' will be substituted with either 'printing' or 'slicing'</small></span>
+			<span class="help-block">{{ _('Topic for print and slicer progress, appended to the base topic, <code>{progress}</code> will be substituted with either <code>printing</code> or <code>slicing</code>') }}</span>
 		</div>
 	</div>
 
