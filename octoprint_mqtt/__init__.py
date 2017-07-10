@@ -74,8 +74,11 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			publish=dict(
 				baseTopic="octoprint/",
 				eventTopic="event/{event}",
+				eventActive=True,
 				progressTopic="progress/{progress}",
-				temperatureTopic="temperature/{temp}"
+				progressActive=True,
+				temperatureTopic="temperature/{temp}",
+				temperatureActive=True
 			)
 		)
 
@@ -317,7 +320,8 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
 	def _get_topic(self, topic_type):
 		sub_topic = self._settings.get(["publish", topic_type + "Topic"])
-		if not sub_topic:
+		topic_active = self._settings.get(["publish", topic_type + "Active"])
+		if not sub_topic or not topic_active:
 			return None
 
 		return self._settings.get(["publish", "baseTopic"]) + sub_topic

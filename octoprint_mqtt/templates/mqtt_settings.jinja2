@@ -132,6 +132,9 @@
 		<label class="control-label">{{ _('Event topic') }}</label>
 		<div class="controls">
 			<input type="text" class="input-large" id="settings_plugin_mqtt_publish_eventTopic" data-bind="value: settings.publish.eventTopic" />
+			<div class="input-append">
+				<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.eventActive" /> {{ _('Activated') }} </label>
+			</div>
 			<span class="help-block">{{ _('Topic for events, appended to the base topic, <code>{event}</code> will be substituted with the event name') }}</span>
 		</div>
 	</div>
@@ -140,6 +143,9 @@
 		<label class="control-label">{{ _('Progress topic') }}</label>
 		<div class="controls">
 			<input type="text" class="input-large" id="settings_plugin_mqtt_publish_progressTopic" data-bind="value: settings.publish.progressTopic" />
+			<div class="input-append">
+				<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.progressActive" /> {{ _('Activated') }} </label>
+			</div>
 			<span class="help-block">{{ _('Topic for print and slicer progress, appended to the base topic, <code>{progress}</code> will be substituted with either <code>printing</code> or <code>slicing</code>') }}</span>
 		</div>
 	</div>
@@ -148,6 +154,9 @@
 		<label class="control-label">{{ _('Temperature topic') }}</label>
 		<div class="controls">
 			<input type="text" class="input-large" id="settings_plugin_mqtt_publish_temperatureTopic" data-bind="value: settings.publish.temperatureTopic" />
+			<div class="input-append">
+				<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.temperatureActive" /> {{ _('Activated') }} </label>
+			</div>
 			<span class="help-block">{{ _('Topic for temperatures, appended to the base topic, <code>{temp}</code> will be substituted with either <code>toolX</code> where X is the number of the tool or <code>bed</code>') }}</span>
 		</div>
 	</div>
