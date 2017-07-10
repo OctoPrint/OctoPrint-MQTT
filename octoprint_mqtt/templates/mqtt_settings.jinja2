@@ -144,5 +144,13 @@
 		</div>
 	</div>
 
+	<div class="control-group">
+		<label class="control-label">{{ _('Temperature topic') }}</label>
+		<div class="controls">
+			<input type="text" class="input-large" id="settings_plugin_mqtt_publish_temperatureTopic" data-bind="value: settings.publish.temperatureTopic" />
+			<span class="help-block">{{ _('Topic for temperatures, appended to the base topic, <code>{temp}</code> will be substituted with either <code>toolX</code> where X is the number of the tool or <code>bed</code>') }}</span>
+		</div>
+	</div>
+
 	
 </form>

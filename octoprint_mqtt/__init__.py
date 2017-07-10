@@ -23,7 +23,14 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		self._mqtt_publish_queue = deque()
 		self._mqtt_subscribe_queue = deque()
 
+		self.lastTemp = {}
+
+		
+
 	def initialize(self):
+		self.printer_callback = octoprint.printer.PrinterCallback()
+		self.printer_callback.on_printer_add_temperature = self.on_printer_add_temperature
+		self._printer.register_callback(self.printer_callback)
 		if self._settings.get(["broker", "url"]) is None:
 			self._logger.error("No broker URL defined, MQTT plugin won't be able to work")
 			return False
@@ -67,7 +74,8 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			publish=dict(
 				baseTopic="octoprint/",
 				eventTopic="event/{event}",
-				progressTopic="progress/{progress}"
+				progressTopic="progress/{progress}",
+				temperatureTopic="temperature/{temp}"
 			)
 		)
 
@@ -109,6 +117,20 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			            destination_path=destination_path,
 			            progress=progress)
 			self.mqtt_publish(topic.format(progress="slicing"), json.dumps(data), retained=True)
+
+	##~~ PrinterCallback
+
+	def on_printer_add_temperature(self, data):
+		topic = self._get_topic("temperature")
+
+		if topic:
+			import json
+			for key in {k:v for k,v in data.iteritems() if k != "time"}:
+				if key not in self.lastTemp or data[key]["actual"] != self.lastTemp[key]["actual"] or data[key]["target"] != self.lastTemp[key]["target"]:
+					dataset = dict(actual=data[key]["actual"],
+					            target=data[key]["target"])
+					self.mqtt_publish(topic.format(temp=key), json.dumps(dataset), retained=True, allow_queueing=True)
+					self.lastTemp.update({key:data[key]})
 
 	##~~ Softwareupdate hook
 
