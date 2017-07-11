@@ -12,7 +12,8 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
                  octoprint.plugin.EventHandlerPlugin,
                  octoprint.plugin.ProgressPlugin,
                  octoprint.plugin.TemplatePlugin,
-                 octoprint.plugin.AssetPlugin):
+                 octoprint.plugin.AssetPlugin,
+                 octoprint.printer.PrinterCallback):
 
 	def __init__(self):
 		self._mqtt = None
@@ -28,9 +29,8 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		
 
 	def initialize(self):
-		self.printer_callback = octoprint.printer.PrinterCallback()
-		self.printer_callback.on_printer_add_temperature = self.on_printer_add_temperature
-		self._printer.register_callback(self.printer_callback)
+		self._printer.register_callback(self)
+
 		if self._settings.get(["broker", "url"]) is None:
 			self._logger.error("No broker URL defined, MQTT plugin won't be able to work")
 			return False
