@@ -29,6 +29,20 @@ Examples:
 | octoprint/progress/printing  | `{"progress": 23, "location": "local", "path": "test.gco"}`      |
 | octoprint/progress/slicing   | `{"progress": 42, "source_location": "local", "source_path": "test.stl", "destination_location": "local", "destination_path": "test.gcode", "slicer": "cura"}` |
 
+The plugin also publishes the temperatures of the tools and the bed to `octoprint/temperature/<tool>` where `<tool>` will either
+be 'bed' or 'toolX' (X is the number of the tool). The payload will contain the `actual` and the `target` temperature as floating point value. 
+New messages will not be published constantly, but only when a value changes. The published messages will be marked as retained.
+
+Examples:
+
+| Topic                        | Message                                                          |
+|------------------------------|------------------------------------------------------------------|
+| octoprint/temperature/tool0  | `{"actual": 65.3, "target": 210.0}`                              |
+| octoprint/temperature/bed    | `{"actual": 42.1, "target": 65.0}`                               |
+
+You are able to deactivate topics in the settings. This allows you to e.g. only send temperature messages when you don't
+need event or progress messages.
+
 The plugin however also offers several helpers that allow other plugins to both publish as well as subscribe to
 MQTT topics, see below for details and a usage example.
 
@@ -92,9 +106,22 @@ plugins:
             # be substituted with the event name
             #eventTopic: event/{event}
 
+            # should events be published?
+            #eventActive: true
+
             # topic for print and slicer progress, appended to the base topic, 
             # '{progress}' will be substituted with either 'printing' or 'slicing'
             #progressTopic: progress/{progress}
+
+            # should progress be published?
+            #progressActive: true
+
+            # topic for temperatures, appended to the base topic, 
+            # '{temp}' will be substituted with either 'toolX' (X is the number of the tool) or 'bed'
+            #temperatureTopic: temperature/{temp}  
+
+            # should temperatures be published?
+            #temperatureActive: true
 ```
 
 ## Helpers
