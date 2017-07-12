@@ -1,6 +1,7 @@
 # coding=utf-8
 from __future__ import absolute_import
 
+import json
 import time
 from collections import deque
 
@@ -88,7 +89,6 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		topic = self._get_topic("event")
 
 		if topic:
-			import json
 			if payload is None:
 				data = dict()
 			else:
@@ -102,7 +102,6 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		topic = self._get_topic("progress")
 		
 		if topic:
-			import json
 			data = dict(location=storage,
 			            path=path,
 			            progress=progress)
@@ -112,7 +111,6 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		topic = self._get_topic("progress")
 		
 		if topic:
-			import json
 			data = dict(slicer=slicer,
 			            source_location=source_location,
 			            source_path=source_path,
@@ -127,7 +125,6 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		topic = self._get_topic("temperature")
 
 		if topic:
-			import json
 			for key, value in data.items():
 				if key == "time":
 					continue
