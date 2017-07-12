@@ -43,7 +43,7 @@ Examples:
 You are able to deactivate topics in the settings. This allows you to e.g. only send temperature messages when you don't
 need event or progress messages.
 
-The plugin however also offers several helpers that allow other plugins to both publish as well as subscribe to
+The plugin also offers several helpers that allow other plugins to both publish as well as subscribe to
 MQTT topics, see below for details and a usage example.
 
 ## Installation
