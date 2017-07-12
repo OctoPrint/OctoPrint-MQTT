@@ -128,10 +128,16 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
 		if topic:
 			import json
-			for key in {k:v for k,v in data.iteritems() if k != "time"}:
-				if key not in self.lastTemp or data[key]["actual"] != self.lastTemp[key]["actual"] or data[key]["target"] != self.lastTemp[key]["target"]:
-					dataset = dict(actual=data[key]["actual"],
-					            target=data[key]["target"])
+			for key, value in data.items():
+				if key == "time":
+					continue
+
+				if key not in self.lastTemp \
+						or value["actual"] != self.lastTemp[key]["actual"] \
+						or value["target"] != self.lastTemp[key]["target"]:
+					# unknown key, new actual or new target -> update mqtt topic!
+					dataset = dict(actual=value["actual"],
+					               target=value["target"])
 					self.mqtt_publish(topic.format(temp=key), json.dumps(dataset), retained=True, allow_queueing=True)
 					self.lastTemp.update({key:data[key]})
 
