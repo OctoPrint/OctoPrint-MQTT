@@ -27,7 +27,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
 		self.lastTemp = {}
 
-		
+
 
 	def initialize(self):
 		self._printer.register_callback(self)
@@ -79,7 +79,8 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 				progressTopic="progress/{progress}",
 				progressActive=True,
 				temperatureTopic="temperature/{temp}",
-				temperatureActive=True
+				temperatureActive=True,
+				temperatureThreshold=0.1
 			)
 		)
 
@@ -97,19 +98,19 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			self.mqtt_publish(topic.format(event=event), json.dumps(data))
 
 	##~~ ProgressPlugin API
-	
+
 	def on_print_progress(self, storage, path, progress):
 		topic = self._get_topic("progress")
-		
+
 		if topic:
 			data = dict(location=storage,
 			            path=path,
 			            progress=progress)
 			self.mqtt_publish(topic.format(progress="printing"), json.dumps(data), retained=True)
-			
+
 	def on_slicing_progress(self, slicer, source_location, source_path, destination_location, destination_path, progress):
 		topic = self._get_topic("progress")
-		
+
 		if topic:
 			data = dict(slicer=slicer,
 			            source_location=source_location,
@@ -123,6 +124,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
 	def on_printer_add_temperature(self, data):
 		topic = self._get_topic("temperature")
+		threshold = self._settings.getFloat(["publish", "temperatureThreshold"])
 
 		if topic:
 			for key, value in data.items():
@@ -130,7 +132,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 					continue
 
 				if key not in self.lastTemp \
-						or value["actual"] != self.lastTemp[key]["actual"] \
+						or abs(value["actual"] - self.lastTemp[key]["actual"]) >= threshold \
 						or value["target"] != self.lastTemp[key]["target"]:
 					# unknown key, new actual or new target -> update mqtt topic!
 					dataset = dict(actual=value["actual"],
