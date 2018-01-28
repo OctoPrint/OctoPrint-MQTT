@@ -76,6 +76,14 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 				baseTopic="octoprint/",
 				eventTopic="event/{event}",
 				eventActive=True,
+				eventServerActive=True,
+				eventPrintCommActive=True,
+				eventFileHandlActive=True,
+				eventPrintingActive=True,
+				eventGCodePrcActive=True,
+				eventTimelapsesActive=True,
+				eventSlicingActive=True,
+				eventSettingsActive=True,
 				progressTopic="progress/{progress}",
 				progressActive=True,
 				temperatureTopic="temperature/{temp}",
@@ -89,12 +97,13 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		topic = self._get_topic("event")
 
 		if topic:
-			if payload is None:
-				data = dict()
-			else:
-				data = dict(payload)
-			data["_event"] = event
-			self.mqtt_publish(topic.format(event=event), json.dumps(data))
+			if self._is_active(event):
+				if payload is None:
+					data = dict()
+				else:
+					data = dict(payload)
+				data["_event"] = event
+				self.mqtt_publish(topic.format(event=event), json.dumps(data))
 
 	##~~ ProgressPlugin API
 	
@@ -328,6 +337,27 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			return None
 
 		return self._settings.get(["publish", "baseTopic"]) + sub_topic
+
+	def _is_active(self, event):
+		if event in ["Startup", "Shutdown","ClientOpened","ClientClosed","ConnectivityChanged"]:
+			return self._settings.get_boolean(["publish", "eventServerActive"])
+		if event in ["Connecting","Connected","Disconnecting","Disconnected","Error","PrinterStateChanged"]:
+			return self._settings.get_boolean(["publish", "eventPrintCommActive"])
+		if event in ["Upload","FileAdded","FileRemoved","FolderAdded","FolderRemoved","UpdatedFiles","MetadataAnalysisStarted","MetadataAnalysisFinished","FileSelected","FileDeselected","TransferStarted","TransferDone"]:
+			return self._settings.get_boolean(["publish", "eventFileHandlActive"])
+		if event in ["PrintStarted","PrintFailed","PrintDone","PrintCancelled","PrintPaused","PrintResumed"]:
+			return self._settings.get_boolean(["publish", "eventPrintingActive"])
+		if event in ["PowerOn","PowerOff","Home","ZChange","Dwell","Waiting","Cooling","Alert","Conveyor","Eject","EStop","PositionUpdate","ToolChange"]:
+			return self._settings.get_boolean(["publish", "eventGCodePrcActive"])
+		if event in ["CaptureStart","CaptureDone","CaptureFailed","MovieRendering","MovieDone","MovieFailed"]:
+			return self._settings.get_boolean(["publish", "eventTimelapsesActive"])
+		if event in ["SlicingStarted","SlicingDone","SlicingCancelled","SlicingFailed","SlicingProfileAdded","SlicingProfileModified","SlicingProfileDeleted"]:
+			return self._settings.get_boolean(["publish", "eventSlicingActive"])
+		if event == "SettingsUpdated":
+			return self._settings.get_boolean(["publish", "eventSettingsActive"])
+		return False
+
+
 
 __plugin_name__ = "MQTT"
 
