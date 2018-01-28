@@ -139,6 +139,43 @@
 		</div>
 	</div>
 
+	<div data-bind="visible: settings.publish.eventActive" style="display: none">
+		<div class="control-group">
+			<div class="controls">
+					<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.eventServerActive" /> {{ _('Server events') }} </label>
+					<span class="help-block">{{ _('Startup, Shutdown, ...') }}</span>
+			</div>
+			<div class="controls">
+					<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.eventPrintCommActive" /> {{ _('Communication events') }} </label>
+					<span class="help-block">{{ _('Connected, disconnected, ...') }}</span>
+			</div>
+			<div class="controls">
+					<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.eventFileHandlActive" /> {{ _('File handling events') }} </label>
+					<span class="help-block">{{ _('Upload, file added, file removed, ...') }}</span>
+			</div>
+			<div class="controls">
+					<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.eventPrintingActive" /> {{ _('Printing events') }} </label>
+					<span class="help-block">{{ _('Print started, print done, ...') }}</span>
+			</div>
+			<div class="controls">
+					<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.eventGCodePrcActive" /> {{ _('GCode processing events') }} </label>
+					<span class="help-block">{{ _('Occuring of some M commands like M80 (Power On), M81 (Power Off), ...') }}</span>
+			</div>
+			<div class="controls">
+					<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.eventTimelapsesActive" /> {{ _('Timelapse events') }} </label>
+					<span class="help-block">{{ _('Capture start, capture done, ...') }}</span>
+			</div>
+			<div class="controls">
+					<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.eventSlicingActive" /> {{ _('Slicing events') }} </label>
+					<span class="help-block">{{ _('Slicing started, slicing done, ...') }}</span>
+			</div>
+			<div class="controls">
+					<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.eventSettingsActive" /> {{ _('Settings events') }} </label>
+					<span class="help-block">{{ _('Settings updated') }}</span>
+			</div>
+		</div>
+	</div>
+
 	<div class="control-group">
 		<label class="control-label">{{ _('Progress topic') }}</label>
 		<div class="controls">
