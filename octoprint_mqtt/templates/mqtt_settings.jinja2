@@ -1,6 +1,6 @@
 <form class="form-horizontal" id="settings_plugin_mqtt">
 	<p>{{ _('If you need help on setting up this plugin, please have a look at <a href="%(url)s" target="_blank">the documentation on Github</a>.', url = "https://github.com/OctoPrint/OctoPrint-MQTT/blob/master/README.md") }}</p>
-	
+
 	<h3>{{ _('Broker') }}</h3>
 
 	<div class="control-group">
@@ -139,6 +139,43 @@
 		</div>
 	</div>
 
+	<div data-bind="visible: settings.publish.eventActive" style="display: none">
+		<div class="control-group">
+			<div class="controls">
+					<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.eventServerActive" /> {{ _('Server events') }} </label>
+					<span class="help-block">{{ _('Startup, Shutdown, ...') }}</span>
+			</div>
+			<div class="controls">
+					<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.eventPrintCommActive" /> {{ _('Communication events') }} </label>
+					<span class="help-block">{{ _('Connected, disconnected, ...') }}</span>
+			</div>
+			<div class="controls">
+					<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.eventFileHandlActive" /> {{ _('File handling events') }} </label>
+					<span class="help-block">{{ _('Upload, file added, file removed, ...') }}</span>
+			</div>
+			<div class="controls">
+					<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.eventPrintingActive" /> {{ _('Printing events') }} </label>
+					<span class="help-block">{{ _('Print started, print done, ...') }}</span>
+			</div>
+			<div class="controls">
+					<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.eventGCodePrcActive" /> {{ _('GCode processing events') }} </label>
+					<span class="help-block">{{ _('Occuring of some M commands like M80 (Power On), M81 (Power Off), ...') }}</span>
+			</div>
+			<div class="controls">
+					<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.eventTimelapsesActive" /> {{ _('Timelapse events') }} </label>
+					<span class="help-block">{{ _('Capture start, capture done, ...') }}</span>
+			</div>
+			<div class="controls">
+					<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.eventSlicingActive" /> {{ _('Slicing events') }} </label>
+					<span class="help-block">{{ _('Slicing started, slicing done, ...') }}</span>
+			</div>
+			<div class="controls">
+					<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.eventSettingsActive" /> {{ _('Settings events') }} </label>
+					<span class="help-block">{{ _('Settings updated') }}</span>
+			</div>
+		</div>
+	</div>
+
 	<div class="control-group">
 		<label class="control-label">{{ _('Progress topic') }}</label>
 		<div class="controls">
@@ -161,5 +198,12 @@
 		</div>
 	</div>
 
-	
+	<div class="control-group">
+		<label class="control-label">{{ _('Temperature threshold') }}</label>
+		<div class="controls">
+			<input type="number" class="input-mini text-right" id="settings_plugin_mqtt_publish_temperatureThreshold" data-bind="value: settings.publish.temperatureThreshold" />
+			<span class="add-on">&deg;C</span>
+			<span class="help-block">{{ _('Threshold for temperature messages') }}</span>
+		</div>
+	</div>
 </form>
