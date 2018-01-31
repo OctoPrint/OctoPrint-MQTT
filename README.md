@@ -30,15 +30,15 @@ Examples:
 | octoprint/progress/slicing   | `{"progress": 42, "source_location": "local", "source_path": "test.stl", "destination_location": "local", "destination_path": "test.gcode", "slicer": "cura"}` |
 
 The plugin also publishes the temperatures of the tools and the bed to `octoprint/temperature/<tool>` where `<tool>` will either
-be 'bed' or 'toolX' (X is the number of the tool). The payload will contain the `actual` and the `target` temperature as floating point value. 
+be 'bed' or 'toolX' (X is the number of the tool). The payload will contain the `actual` and the `target` temperature as floating point value plus the current `time` as unix timestamp in seconds.
 New messages will not be published constantly, but only when a value changes. The published messages will be marked as retained.
 
 Examples:
 
 | Topic                        | Message                                                          |
 |------------------------------|------------------------------------------------------------------|
-| octoprint/temperature/tool0  | `{"actual": 65.3, "target": 210.0}`                              |
-| octoprint/temperature/bed    | `{"actual": 42.1, "target": 65.0}`                               |
+| octoprint/temperature/tool0  | `{"time": 1517190629, "actual": 65.3, "target": 210.0}`                              |
+| octoprint/temperature/bed    | `{"time": 1517190629, "actual": 42.1, "target": 65.0}`                               |
 
 You are able to deactivate topics in the settings. This allows you to e.g. only send temperature messages when you don't
 need event or progress messages.
