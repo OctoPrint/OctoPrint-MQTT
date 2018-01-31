@@ -133,7 +133,8 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 						or value["actual"] != self.lastTemp[key]["actual"] \
 						or value["target"] != self.lastTemp[key]["target"]:
 					# unknown key, new actual or new target -> update mqtt topic!
-					dataset = dict(actual=value["actual"],
+					dataset = dict(time=data["time"],
+					               actual=value["actual"]),
 					               target=value["target"])
 					self.mqtt_publish(topic.format(temp=key), json.dumps(dataset), retained=True, allow_queueing=True)
 					self.lastTemp.update({key:data[key]})
