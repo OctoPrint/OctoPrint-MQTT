@@ -1,6 +1,6 @@
 <form class="form-horizontal" id="settings_plugin_mqtt">
 	<p>{{ _('If you need help on setting up this plugin, please have a look at <a href="%(url)s" target="_blank">the documentation on Github</a>.', url = "https://github.com/OctoPrint/OctoPrint-MQTT/blob/master/README.md") }}</p>
-	
+
 	<h3>{{ _('Broker') }}</h3>
 
 	<div class="control-group">
@@ -202,5 +202,12 @@
 		</div>
 	</div>
 
-	
+	<div class="control-group">
+		<label class="control-label">{{ _('Temperature threshold') }}</label>
+		<div class="controls">
+			<input type="number" class="input-mini text-right" id="settings_plugin_mqtt_publish_temperatureThreshold" data-bind="value: settings.publish.temperatureThreshold" />
+			<span class="add-on">&deg;C</span>
+			<span class="help-block">{{ _('Threshold for temperature messages') }}</span>
+		</div>
+	</div>
 </form>
