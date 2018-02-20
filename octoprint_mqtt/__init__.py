@@ -95,9 +95,21 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 				data = dict(payload)
 			data["_event"] = event
 			self.mqtt_publish(topic.format(event=event), json.dumps(data))
+		if event == octoprint.events.Events.PRINT_STARTED:
+			topic = self._get_topic("progress")
+			data = dict(location=payload["origin"],
+			            path=payload["path"],
+			            progress=0)
+			self.mqtt_publish(topic.format(progress="printing"), json.dumps(data), retained=True)
+		elif event == octoprint.events.Events.PRINT_DONE:
+			topic = self._get_topic("progress")
+			data = dict(location=payload["origin"],
+			            path=payload["path"],
+			            progress=100)
+			self.mqtt_publish(topic.format(progress="printing"), json.dumps(data), retained=True)
 
 	##~~ ProgressPlugin API
-	
+
 	def on_print_progress(self, storage, path, progress):
 		topic = self._get_topic("progress")
 		
