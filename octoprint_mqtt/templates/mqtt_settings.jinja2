@@ -207,7 +207,7 @@
 		<div class="controls">
 			<input type="number" class="input-mini text-right" id="settings_plugin_mqtt_publish_temperatureThreshold" data-bind="value: settings.publish.temperatureThreshold" />
 			<span class="add-on">&deg;C</span>
-			<span class="help-block">{{ _('Threshold for temperature messages') }}</span>
+			<span class="help-block">{{ _('Threshold for temperature messages, no messages will be generated if the difference between the current and the last pushed temperature is less than this.') }}</span>
 		</div>
 	</div>
 </form>
