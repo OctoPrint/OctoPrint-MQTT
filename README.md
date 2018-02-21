@@ -5,40 +5,42 @@ This is an OctoPrint Plugin that adds support for [MQTT](http://mqtt.org/) to Oc
 Out of the box OctoPrint will send all [events](http://docs.octoprint.org/en/devel/events/index.html#available-events)
 including their payloads to the topic `octoprint/event/<event>`, where `<event>` will be the name of the event. The message
 payload will be a JSON representation of the event's payload, with an additional property `_event` containing the name
-of the event.
+of the event and a property `_timestamp` containing the unix timestamp of when the message was created.
 
 Examples:
 
 | Topic                        | Message                                                          |
 |------------------------------|------------------------------------------------------------------|
-| octoprint/event/ClientOpened | `{"_event": "ClientOpened", "remoteAddress": "127.0.0.1"}`       |
-| octoprint/event/Connected    | `{"baudrate": 250000, "_event": "Connected", "port": "VIRTUAL"}` |
-| octoprint/event/PrintStarted | `{"origin": "local", "_event": "PrintStarted", "file":"/home/pi/.octoprint/uploads/case_bp_3.6.v1.0.gco", "filename": "case_bp_3.6.v1.0.gco"}` |
+| octoprint/event/ClientOpened | `{"_timestamp": 1517190629, "_event": "ClientOpened", "remoteAddress": "127.0.0.1"}`       |
+| octoprint/event/Connected    | `{"_timestamp": 1517190629, "_event": "Connected", "baudrate": 250000, "port": "VIRTUAL"}` |
+| octoprint/event/PrintStarted | `{"_timestamp": 1517190629, "_event": "PrintStarted", "origin": "local", "file":"/home/pi/.octoprint/uploads/case_bp_3.6.v1.0.gco", "filename": "case_bp_3.6.v1.0.gco"}` |
 
 The print progress and the slicing progress will also be send to the topic `octoprint/progress/printing` and
 `octoprint/progress/slicing` respectively. The payload will contain the `progress` as an integer between 0 and 100.
 Print progress will also contain information about the currently printed file (storage `location` and `path` on storage),
 slicing progress will contain information about the currently sliced file (storage `source_location` and `destination_location`,
-`source_path` and `destination_path` on storage, used `slicer`). The published progress messages will be marked as
+`source_path` and `destination_path` on storage, used `slicer`). The payload will also contain a property `_timestamp` 
+containing the unix timestamp of when the message was created. The published progress messages will be marked as
 retained.
 
 Examples:
 
 | Topic                        | Message                                                          |
 |------------------------------|------------------------------------------------------------------|
-| octoprint/progress/printing  | `{"progress": 23, "location": "local", "path": "test.gco"}`      |
-| octoprint/progress/slicing   | `{"progress": 42, "source_location": "local", "source_path": "test.stl", "destination_location": "local", "destination_path": "test.gcode", "slicer": "cura"}` |
+| octoprint/progress/printing  | `{"_timestamp": 1517190629, "progress": 23, "location": "local", "path": "test.gco"}`      |
+| octoprint/progress/slicing   | `{"_timestamp": 1517190629, "progress": 42, "source_location": "local", "source_path": "test.stl", "destination_location": "local", "destination_path": "test.gcode", "slicer": "cura"}` |
 
 The plugin also publishes the temperatures of the tools and the bed to `octoprint/temperature/<tool>` where `<tool>` will either
 be 'bed' or 'toolX' (X is the number of the tool). The payload will contain the `actual` and the `target` temperature as floating point value plus the current `time` as unix timestamp in seconds.
-New messages will not be published constantly, but only when a value changes. The published messages will be marked as retained.
+New messages will not be published constantly, but only when a value changes. The payload will also contain a property `_timestamp` 
+containing the unix timestamp of when the message was created. The published messages will be marked as retained.
 
 Examples:
 
 | Topic                        | Message                                                          |
 |------------------------------|------------------------------------------------------------------|
-| octoprint/temperature/tool0  | `{"time": 1517190629, "actual": 65.3, "target": 210.0}`                              |
-| octoprint/temperature/bed    | `{"time": 1517190629, "actual": 42.1, "target": 65.0}`                               |
+| octoprint/temperature/tool0  | `{"_timestamp": 1517190629, "actual": 65.3, "target": 210.0}`                              |
+| octoprint/temperature/bed    | `{"_timestamp": 1517190629, "actual": 42.1, "target": 65.0}`                               |
 
 You are able to deactivate topics in the settings. This allows you to e.g. only send temperature messages when you don't
 need event or progress messages.
@@ -129,13 +131,22 @@ plugins:
 ### mqtt_publish(topic, payload, retained=False, qos=0, allow_queueing=False)
 
 Publishes `payload` to `topic`. If `retained` is set to `True`, message will be flagged to be retained by the
-broker. The QOS setting can be override with the `qos` parameter.
+broker. The QOS setting can be overridden with the `qos` parameter.
+
+`payload` may be a string in which case it will be sent as is. Otherwise a value conversion to JSON will be performed.
 
 If the MQTT plugin is currently not connected to the broker but `allow_queueing` is `True`, the message will be
 stored internally and published upon connection to the broker.
 
 Returns `True` if the message was accepted to be published by the MQTT plugin, `False` if the message could not
 be accepted (e.g. due to the plugin being not connected to the broker and queueing not being allowed).
+
+### mqtt_publish_with_timestamp(topic, payload, retained=False, qos=0, allow_queueing=False, timestamp=None)
+
+Publishes `payload` to `topic` including a timestamp. `payload` *must* be a Python `dict` and will be extended by a 
+property `_timestamp` set to the provided `timestamp` or - if unset - the current timestamp.
+
+Everything else behaves as `mqtt_publish` (which is also used internally).
 
 ### mqtt_subscribe(topic, callback, args=None, kwargs=None)
 

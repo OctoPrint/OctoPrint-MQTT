@@ -51,8 +51,6 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
 		self.lastTemp = {}
 
-
-
 	def initialize(self):
 		self._printer.register_callback(self)
 
@@ -132,7 +130,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 				else:
 					data = dict(payload)
 				data["_event"] = event
-				self.mqtt_publish(topic.format(event=event), json.dumps(data))
+				self.mqtt_publish_with_timestamp(topic.format(event=event), data)
 
 	##~~ ProgressPlugin API
 
@@ -143,7 +141,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			data = dict(location=storage,
 			            path=path,
 			            progress=progress)
-			self.mqtt_publish(topic.format(progress="printing"), json.dumps(data), retained=True)
+			self.mqtt_publish_with_timestamp(topic.format(progress="printing"), data, retained=True)
 
 	def on_slicing_progress(self, slicer, source_location, source_path, destination_location, destination_path, progress):
 		topic = self._get_topic("progress")
@@ -155,13 +153,13 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			            destination_location=destination_location,
 			            destination_path=destination_path,
 			            progress=progress)
-			self.mqtt_publish(topic.format(progress="slicing"), json.dumps(data), retained=True)
+			self.mqtt_publish_with_timestamp(topic.format(progress="slicing"), data, retained=True)
 
 	##~~ PrinterCallback
 
 	def on_printer_add_temperature(self, data):
 		topic = self._get_topic("temperature")
-		threshold = self._settings.getFloat(["publish", "temperatureThreshold"])
+		threshold = self._settings.get_float(["publish", "temperatureThreshold"])
 
 		if topic:
 			for key, value in data.items():
@@ -172,10 +170,12 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 						or abs(value["actual"] - self.lastTemp[key]["actual"]) >= threshold \
 						or value["target"] != self.lastTemp[key]["target"]:
 					# unknown key, new actual or new target -> update mqtt topic!
-					dataset = dict(time=data["time"],
-					               actual=value["actual"]),
+					dataset = dict(actual=value["actual"],
 					               target=value["target"])
-					self.mqtt_publish(topic.format(temp=key), json.dumps(dataset), retained=True, allow_queueing=True)
+					self.mqtt_publish_with_timestamp(topic.format(temp=key), dataset,
+					                                 retained=True,
+					                                 allow_queueing=True,
+					                                 timestamp=data["time"])
 					self.lastTemp.update({key:data[key]})
 
 	##~~ Softwareupdate hook
@@ -257,7 +257,22 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			time.sleep(1)
 			self._mqtt.loop_stop(force=True)
 
+	def mqtt_publish_with_timestamp(self, topic, payload, retained=False, qos=0, allow_queueing=False, timestamp=None):
+		if not payload:
+			payload = dict()
+		if not isinstance(payload, dict):
+			raise ValueError("payload must be a dict")
+
+		if timestamp is None:
+			timestamp = time.time()
+		payload["_timestamp"] = int(timestamp)
+
+		return self.mqtt_publish(topic, payload, retained=retained, qos=qos, allow_queueing=allow_queueing)
+
 	def mqtt_publish(self, topic, payload, retained=False, qos=0, allow_queueing=False):
+		if not isinstance(payload, basestring):
+			payload = json.dumps(payload)
+
 		if not self._mqtt_connected:
 			if allow_queueing:
 				self._logger.debug("Not connected, enqueuing message: {topic} - {payload}".format(**locals()))
@@ -384,6 +399,7 @@ def __plugin_load__():
 	global __plugin_helpers__
 	__plugin_helpers__ = dict(
 		mqtt_publish=plugin.mqtt_publish,
+		mqtt_publish_with_timestamp=plugin.mqtt_publish_with_timestamp,
 		mqtt_subscribe=plugin.mqtt_subscribe,
 		mqtt_unsubscribe=plugin.mqtt_unsubscribe
 	)
