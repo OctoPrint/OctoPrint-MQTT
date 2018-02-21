@@ -8,6 +8,7 @@ from collections import deque
 import octoprint.plugin
 
 from octoprint.events import Events
+from octoprint.util import dict_minimal_mergediff
 
 class MqttPlugin(octoprint.plugin.SettingsPlugin,
                  octoprint.plugin.StartupPlugin,
@@ -117,6 +118,19 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 				temperatureThreshold=0.1
 			)
 		)
+
+	def on_settings_save(self, data):
+		old_broker_data = self._settings.get(["broker"])
+
+		octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
+
+		new_broker_data = self._settings.get(["broker"])
+		diff = dict_minimal_mergediff(old_broker_data, new_broker_data)
+		if len(diff):
+			# something changed
+			self._logger.info("Settings changed ({!r}), reconnecting to broker".format(diff))
+			self.mqtt_disconnect(force=True)
+			self.mqtt_connect()
 
 	##~~ EventHandlerPlugin API
 
@@ -362,7 +376,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			return
 
 		if not rc == 0:
-			self._logger.error("Disconnected from mqtt broker for unknown reasons")
+			self._logger.error("Disconnected from mqtt broker for unknown reasons (network error?), rc = {}".format(rc))
 
 		self._mqtt_connected = False
 
