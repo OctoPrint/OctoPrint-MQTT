@@ -1,213 +1,245 @@
 <form class="form-horizontal" id="settings_plugin_mqtt">
-	<p>{{ _('If you need help on setting up this plugin, please have a look at <a href="%(url)s" target="_blank">the documentation on Github</a>.', url = "https://github.com/OctoPrint/OctoPrint-MQTT/blob/master/README.md") }}</p>
+	<ul class="nav nav-pills">
+		<li class="active"><a href="#settings_plugin_mqtt_broker" data-toggle="tab">{{ _('Broker') }}</a></li>
+		<li><a href="#settings_plugin_mqtt_topics" data-toggle="tab">{{ _('Topics') }}</a></li>
+	</ul>
 
-	<h3>{{ _('Broker') }}</h3>
-
-	<div class="control-group">
-		<label class="control-label">{{ _('Host') }}</label>
-		<div class="controls">
-			<input type="text" class="input-large" id="settings_plugin_mqtt_broker_url" data-bind="value: settings.broker.url" />
-			<span class="help-block">{{ _('The broker\'s URL or IP. Mandatory, if not configured the plugin will do nothing.') }}</span>
-		</div>
-	</div>
-
-	<div class="control-group">
-		<label class="control-label">{{ _('Port') }}</label>
-		<div class="controls">
-			<input type="number" class="input-mini text-right" id="settings_plugin_mqtt_broker_port" data-bind="value: settings.broker.port" />
-			<span class="help-block">{{ _('The broker\'s port, defaults to 1883.') }}</span>
-		</div>
-	</div>
-
-	<div class="control-group">
-		<label class="control-label">{{ _('Protocol version') }}</label>
-		<div class="controls">
-			<select class="input-medium" id="settings_plugin_mqtt_broker_protocol" data-bind="options: $root.availableProtocols, value: settings.broker.protocol"></select>
-			<span class="help-block">{{ _('Protocol version to use, defaults to <code>MQTTv31</code>.') }}</span>
-		</div>
-	</div>
-
-	<div class="control-group">
-		<label class="control-label">{{ _('Keepalive') }}</label>
-		<div class="controls">
-			<div class="input-append">
-				<input type="number" class="input-mini text-right" id="settings_plugin_mqtt_broker_keepalive" data-bind="value: settings.broker.keepalive" />
-				<span class="add-on">sec</span>
+	<div class="tab-content">
+		<div id="settings_plugin_mqtt_broker" class="tab-pane active">
+			<div class="control-group">
+				<label class="control-label">{{ _('Host') }}</label>
+				<div class="controls">
+					<input type="text" class="input-large" id="settings_plugin_mqtt_broker_url" data-bind="value: settings.broker.url" />
+					<span class="help-block">{{ _('The broker\'s URL or IP. Mandatory, if not configured the plugin will do nothing.') }}</span>
+				</div>
 			</div>
-			<span class="help-block">{{ _('The keepalive value for the broker connection') }}</span>
-		</div>
-	</div>
 
-	<div class="control-group">
-		<div class="controls">
-			<label class="checkbox">
-				<input type="checkbox" data-bind="checked: showUserCredentials"> {{ _('The broker requires username and password to connect, show options') }}
-			</label>
-		</div>
-	</div>
-
-	<div data-bind="visible: showUserCredentials" style="display: none">
-		<div class="control-group">
-			<label class="control-label">{{ _('Username') }}</label>
-			<div class="controls">
-				<input type="text" class="input-large" id="settings_plugin_mqtt_broker_username" data-bind="value: settings.broker.username" />
-				<span class="help-block">{{ _('The username to use to connect with the broker, if not set no user credentials will be sent') }}</span>
+			<div class="control-group">
+				<label class="control-label">{{ _('Port') }}</label>
+				<div class="controls">
+					<input type="number" class="input-mini text-right" id="settings_plugin_mqtt_broker_port" data-bind="value: settings.broker.port" />
+					<span class="help-block">{{ _('The broker\'s port, defaults to 1883.') }}</span>
+				</div>
 			</div>
-		</div>
 
-		<div class="control-group">
-			<label class="control-label">{{ _('Password') }}</label>
-			<div class="controls">
-				<input type="text" class="input-large" id="settings_plugin_mqtt_broker_password" data-bind="value: settings.broker.password" />
-				<span class="help-block">{{ _('The password to use to connect with the broker, only used if a username is supplied too') }}</span>
+			<div class="control-group">
+				<label class="control-label">{{ _('Protocol version') }}</label>
+				<div class="controls">
+					<select class="input-medium" id="settings_plugin_mqtt_broker_protocol" data-bind="options: $root.availableProtocols, value: settings.broker.protocol"></select>
+					<span class="help-block">{{ _('Protocol version to use, defaults to <code>MQTTv31</code>.') }}</span>
+				</div>
 			</div>
-		</div>
-	</div>
 
-	<div class="control-group">
-		<div class="controls">
-			<label class="checkbox">
-				<input type="checkbox" data-bind="checked: showSsl"> {{ _('The broker requires TLS to connect, show SSL/TLS options') }}
-			</label>
-		</div>
-	</div>
-	<div data-bind="visible: showSsl" style="display: none">
-		<div class="control-group">
-			<label class="control-label">{{ _('Path to server certificate chain') }}</label>
-			<div class="controls">
-				<input type="text" class="input-large" id="settings_plugin_mqtt_broker_tls_caCerts" data-bind="value: settings.broker.tls.ca_certs" />
-				<span class="help-block">{{ _('Path to the server\'s certificate chain file. Mandatory, required for TLS to work.') }}</span>
+			<div class="control-group">
+				<label class="control-label">{{ _('Keepalive') }}</label>
+				<div class="controls">
+					<div class="input-append">
+						<input type="number" class="input-mini text-right" id="settings_plugin_mqtt_broker_keepalive" data-bind="value: settings.broker.keepalive" />
+						<span class="add-on">sec</span>
+					</div>
+					<span class="help-block">{{ _('The keepalive value for the broker connection') }}</span>
+				</div>
 			</div>
-		</div>
 
-		<div class="control-group">
-			<label class="control-label">{{ _('Path to client certificate') }}</label>
-			<div class="controls">
-				<input type="text" class="input-large" id="settings_plugin_mqtt_broker_tls_certfile" data-bind="value: settings.broker.tls.certfile" />
-				<span class="help-block">{{ _('Paths to the PEM encoded client certificate, <strong>must not be password protected</strong>, only necessary if broker requires client certificate authentication.') }}</span>
+			<div class="control-group">
+				<div class="controls">
+					<label class="checkbox">
+						<input type="checkbox" data-bind="checked: showUserCredentials"> {{ _('The broker requires username and password to connect, show options') }}
+					</label>
+				</div>
 			</div>
-		</div>
 
-		<div class="control-group">
-			<label class="control-label">{{ _('Path to client key') }}</label>
-			<div class="controls">
-				<input type="text" class="input-large" id="settings_plugin_mqtt_broker_tls_keyfile" data-bind="value: settings.broker.tls.keyfile" />
-				<span class="help-block">{{ _('Paths to the PEM encoded private keys, <strong>must not be password protected</strong>, only necessary if broker requires client certificate authentication.') }}</span>
-			</div>
-		</div>
-
-		<div class="advanced-options-container">
-			<div><small><a href="#" class="muted" data-bind="toggleContent: { class: 'fa-caret-right fa-caret-down', parent: '.advanced-options-container', container: '.hide' }"><i class="fa fa-caret-right"></i> {{ _('Advanced TLS options') }}</a></small></div>
-			<div class="hide">
+			<div data-bind="visible: showUserCredentials" style="display: none">
 				<div class="control-group">
-					<label class="control-label">{{ _('Ciphers') }}</label>
+					<label class="control-label">{{ _('Username') }}</label>
 					<div class="controls">
-						<input type="text" class="input-large" id="settings_plugin_mqtt_broker_tls_ciphers" data-bind="value: settings.broker.tls.ciphers" />
-						<span class="help-block">{{ _('A string specifying which encryption ciphers are allowable for this connection. See <a href="%(url)s" target="_blank">the OpenSSL documentation on ciphers</a>.', url = "https://www.openssl.org/docs/manmaster/man1/ciphers.html") }}</span>
+						<input type="text" class="input-large" id="settings_plugin_mqtt_broker_username" data-bind="value: settings.broker.username" />
+						<span class="help-block">{{ _('The username to use to connect with the broker, if not set no user credentials will be sent') }}</span>
 					</div>
 				</div>
 
+				<div class="control-group">
+					<label class="control-label">{{ _('Password') }}</label>
+					<div class="controls">
+						<input type="text" class="input-large" id="settings_plugin_mqtt_broker_password" data-bind="value: settings.broker.password" />
+						<span class="help-block">{{ _('The password to use to connect with the broker, only used if a username is supplied too') }}</span>
+					</div>
+				</div>
+			</div>
+
+			<div class="control-group">
+				<div class="controls">
+					<label class="checkbox">
+						<input type="checkbox" data-bind="checked: showSsl"> {{ _('The broker requires TLS to connect, show SSL/TLS options') }}
+					</label>
+				</div>
+			</div>
+			<div data-bind="visible: showSsl" style="display: none">
+				<div class="control-group">
+					<label class="control-label">{{ _('Path to server certificate chain') }}</label>
+					<div class="controls">
+						<input type="text" class="input-large" id="settings_plugin_mqtt_broker_tls_caCerts" data-bind="value: settings.broker.tls.ca_certs" />
+						<span class="help-block">{{ _('Path to the server\'s certificate chain file. Mandatory, required for TLS to work.') }}</span>
+					</div>
+				</div>
+
+				<div class="control-group">
+					<label class="control-label">{{ _('Path to client certificate') }}</label>
+					<div class="controls">
+						<input type="text" class="input-large" id="settings_plugin_mqtt_broker_tls_certfile" data-bind="value: settings.broker.tls.certfile" />
+						<span class="help-block">{{ _('Paths to the PEM encoded client certificate, <strong>must not be password protected</strong>, only necessary if broker requires client certificate authentication.') }}</span>
+					</div>
+				</div>
+
+				<div class="control-group">
+					<label class="control-label">{{ _('Path to client key') }}</label>
+					<div class="controls">
+						<input type="text" class="input-large" id="settings_plugin_mqtt_broker_tls_keyfile" data-bind="value: settings.broker.tls.keyfile" />
+						<span class="help-block">{{ _('Paths to the PEM encoded private keys, <strong>must not be password protected</strong>, only necessary if broker requires client certificate authentication.') }}</span>
+					</div>
+				</div>
+
+				<div class="advanced-options-container">
+					<div><small><a href="#" class="muted" data-bind="toggleContent: { class: 'fa-caret-right fa-caret-down', parent: '.advanced-options-container', container: '.hide' }"><i class="fa fa-caret-right"></i> {{ _('Advanced TLS options') }}</a></small></div>
+					<div class="hide">
+						<div class="control-group">
+							<label class="control-label">{{ _('Ciphers') }}</label>
+							<div class="controls">
+								<input type="text" class="input-large" id="settings_plugin_mqtt_broker_tls_ciphers" data-bind="value: settings.broker.tls.ciphers" />
+								<span class="help-block">{{ _('A string specifying which encryption ciphers are allowable for this connection. See <a href="%(url)s" target="_blank">the OpenSSL documentation on ciphers</a>.', url = "https://www.openssl.org/docs/manmaster/man1/ciphers.html") }}</span>
+							</div>
+						</div>
+
+						<div class="control-group">
+							<div class="controls">
+								<label class="checkbox">
+									<input type="checkbox" data-bind="checked: settings.tls_insecure" /> {{ _('Do not verify the server hostname in the server certificate') }} <span class="label label-important">Caution</span>
+								</label>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="settings_plugin_mqtt_topics" class="tab-pane">
+			<fieldset>
+				<legend>{{ _('General') }}</legend>
+				<div class="control-group">
+					<label class="control-label">{{ _('Base topic') }}</label>
+					<div class="controls">
+						<input type="text" class="input-large" id="settings_plugin_mqtt_publish_baseTopic" data-bind="value: settings.publish.baseTopic" />
+						<span class="help-block">{{ _('Base topic under which to publish OctoPrint\'s messages') }}</span>
+					</div>
+				</div>
+			</fieldset>
+
+			<fieldset>
+				<legend>{{ _('Event messages') }}</legend>
 				<div class="control-group">
 					<div class="controls">
 						<label class="checkbox">
-							<input type="checkbox" data-bind="checked: settings.tls_insecure" /> {{ _('Do not verify the server hostname in the server certificate') }} <span class="label label-important">Caution</span>
+							<input type="checkbox" data-bind="checked:  settings.publish.eventActive" /> {{ _('Activate event messages') }}
 						</label>
 					</div>
 				</div>
-			</div>
-		</div>
-	</div>
+				<div class="control-group">
+					<label class="control-label">{{ _('Topic') }}</label>
+					<div class="controls">
+						<input type="text" class="input-large" id="settings_plugin_mqtt_publish_eventTopic" data-bind="value: settings.publish.eventTopic" />
+						<span class="help-block">{{ _('Topic for events, appended to the base topic, <code>{event}</code> will be substituted with the event name') }}</span>
+					</div>
+				</div>
 
-	<h3>{{ _('Topics') }}</h3>
+				<div data-bind="visible: settings.publish.eventActive" style="display: none">
+					<div class="control-group">
+						<div class="controls">
+								<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.events.server" /> {{ _('Server events') }} </label>
+								<span class="help-block">{{ _('Startup, Shutdown, ...') }}</span>
+						</div>
+						<div class="controls">
+								<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.events.comm" /> {{ _('Communication events') }} </label>
+								<span class="help-block">{{ _('Connected, disconnected, ...') }}</span>
+						</div>
+						<div class="controls">
+								<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.events.files" /> {{ _('File handling events') }} </label>
+								<span class="help-block">{{ _('Upload, file added, file removed, ...') }}</span>
+						</div>
+						<div class="controls">
+								<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.events.printjob" /> {{ _('Printing events') }} </label>
+								<span class="help-block">{{ _('Print started, print done, ...') }}</span>
+						</div>
+						<div class="controls">
+								<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.events.gcode" /> {{ _('GCode processing events') }} </label>
+								<span class="help-block">{{ _('Events triggered due to GCODE commands like M80 (Power On), M81 (Power Off), ...') }}</span>
+						</div>
+						<div class="controls">
+								<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.events.timelapse" /> {{ _('Timelapse events') }} </label>
+								<span class="help-block">{{ _('Capture start, capture done, ...') }}</span>
+						</div>
+						<div class="controls">
+								<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.events.slicing" /> {{ _('Slicing events') }} </label>
+								<span class="help-block">{{ _('Slicing started, slicing done, ...') }}</span>
+						</div>
+						<div class="controls">
+								<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.events.settings" /> {{ _('Settings events') }} </label>
+								<span class="help-block">{{ _('Settings updated') }}</span>
+						</div>
+						<div class="controls">
+								<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.events.unclassified" /> {{ _('Unclassified events') }} </label>
+								<span class="help-block">{{ _('Anything not fitting any of the above') }}</span>
+						</div>
+					</div>
+				</div>
+			</fieldset>
 
-	<div class="control-group">
-		<label class="control-label">{{ _('Base topic') }}</label>
-		<div class="controls">
-			<input type="text" class="input-large" id="settings_plugin_mqtt_publish_baseTopic" data-bind="value: settings.publish.baseTopic" />
-			<span class="help-block">{{ _('Base topic under which to publish OctoPrint\'s messages') }}</span>
-		</div>
-	</div>
+			<fieldset>
+				<legend>{{ _('Progress messages') }}</legend>
+				<div class="control-group">
+					<div class="controls">
+						<label class="checkbox">
+							<input type="checkbox" data-bind="checked:  settings.publish.progressActive" /> {{ _('Activate progress messages') }}
+						</label>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">{{ _('Topic') }}</label>
+					<div class="controls">
+						<input type="text" class="input-large" id="settings_plugin_mqtt_publish_progressTopic" data-bind="value: settings.publish.progressTopic" />
+						<span class="help-block">{{ _('Topic for print and slicer progress, appended to the base topic, <code>{progress}</code> will be substituted with either <code>printing</code> or <code>slicing</code>') }}</span>
+					</div>
+				</div>
+			</fieldset>
 
-	<div class="control-group">
-		<label class="control-label">{{ _('Event topic') }}</label>
-		<div class="controls">
-			<input type="text" class="input-large" id="settings_plugin_mqtt_publish_eventTopic" data-bind="value: settings.publish.eventTopic" />
-			<div class="input-append">
-				<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.eventActive" /> {{ _('Activated') }} </label>
-			</div>
-			<span class="help-block">{{ _('Topic for events, appended to the base topic, <code>{event}</code> will be substituted with the event name') }}</span>
-		</div>
-	</div>
+			<fieldset>
+				<legend>{{ _('Temperature messages') }}</legend>
+				<div class="control-group">
+					<div class="controls">
+						<label class="checkbox">
+							<input type="checkbox" data-bind="checked:  settings.publish.temperatureActive" /> {{ _('Activate temperature messages') }}
+						</label>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">{{ _('Topic') }}</label>
+					<div class="controls">
+						<input type="text" class="input-large" id="settings_plugin_mqtt_publish_temperatureTopic" data-bind="value: settings.publish.temperatureTopic" />
+						<span class="help-block">{{ _('Topic for temperatures, appended to the base topic, <code>{temp}</code> will be substituted with either <code>toolX</code> where X is the number of the tool or <code>bed</code>') }}</span>
+					</div>
+				</div>
 
-	<div data-bind="visible: settings.publish.eventActive" style="display: none">
-		<div class="control-group">
-			<div class="controls">
-					<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.events.server" /> {{ _('Server events') }} </label>
-					<span class="help-block">{{ _('Startup, Shutdown, ...') }}</span>
-			</div>
-			<div class="controls">
-					<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.events.comm" /> {{ _('Communication events') }} </label>
-					<span class="help-block">{{ _('Connected, disconnected, ...') }}</span>
-			</div>
-			<div class="controls">
-					<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.events.files" /> {{ _('File handling events') }} </label>
-					<span class="help-block">{{ _('Upload, file added, file removed, ...') }}</span>
-			</div>
-			<div class="controls">
-					<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.events.printjob" /> {{ _('Printing events') }} </label>
-					<span class="help-block">{{ _('Print started, print done, ...') }}</span>
-			</div>
-			<div class="controls">
-					<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.events.gcode" /> {{ _('GCode processing events') }} </label>
-					<span class="help-block">{{ _('Events triggered due to GCODE commands like M80 (Power On), M81 (Power Off), ...') }}</span>
-			</div>
-			<div class="controls">
-					<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.events.timelapse" /> {{ _('Timelapse events') }} </label>
-					<span class="help-block">{{ _('Capture start, capture done, ...') }}</span>
-			</div>
-			<div class="controls">
-					<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.events.slicing" /> {{ _('Slicing events') }} </label>
-					<span class="help-block">{{ _('Slicing started, slicing done, ...') }}</span>
-			</div>
-			<div class="controls">
-					<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.events.settings" /> {{ _('Settings events') }} </label>
-					<span class="help-block">{{ _('Settings updated') }}</span>
-			</div>
-			<div class="controls">
-					<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.events.unclassified" /> {{ _('Unclassified events') }} </label>
-					<span class="help-block">{{ _('Anything not fitting any of the above') }}</span>
-			</div>
-		</div>
-	</div>
+				<div class="control-group">
+					<label class="control-label">{{ _('Threshold') }}</label>
+					<div class="controls">
+						<input type="number" class="input-mini text-right" id="settings_plugin_mqtt_publish_temperatureThreshold" data-bind="value: settings.publish.temperatureThreshold" />
+						<span class="add-on">&deg;C</span>
+						<span class="help-block">{{ _('Threshold for temperature messages, no messages will be generated if the difference between the current and the last pushed temperature is less than this.') }}</span>
+					</div>
+				</div>
+			</fieldset>
 
-	<div class="control-group">
-		<label class="control-label">{{ _('Progress topic') }}</label>
-		<div class="controls">
-			<input type="text" class="input-large" id="settings_plugin_mqtt_publish_progressTopic" data-bind="value: settings.publish.progressTopic" />
-			<div class="input-append">
-				<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.progressActive" /> {{ _('Activated') }} </label>
-			</div>
-			<span class="help-block">{{ _('Topic for print and slicer progress, appended to the base topic, <code>{progress}</code> will be substituted with either <code>printing</code> or <code>slicing</code>') }}</span>
-		</div>
-	</div>
-
-	<div class="control-group">
-		<label class="control-label">{{ _('Temperature topic') }}</label>
-		<div class="controls">
-			<input type="text" class="input-large" id="settings_plugin_mqtt_publish_temperatureTopic" data-bind="value: settings.publish.temperatureTopic" />
-			<div class="input-append">
-				<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.temperatureActive" /> {{ _('Activated') }} </label>
-			</div>
-			<span class="help-block">{{ _('Topic for temperatures, appended to the base topic, <code>{temp}</code> will be substituted with either <code>toolX</code> where X is the number of the tool or <code>bed</code>') }}</span>
-		</div>
-	</div>
-
-	<div class="control-group">
-		<label class="control-label">{{ _('Temperature threshold') }}</label>
-		<div class="controls">
-			<input type="number" class="input-mini text-right" id="settings_plugin_mqtt_publish_temperatureThreshold" data-bind="value: settings.publish.temperatureThreshold" />
-			<span class="add-on">&deg;C</span>
-			<span class="help-block">{{ _('Threshold for temperature messages, no messages will be generated if the difference between the current and the last pushed temperature is less than this.') }}</span>
 		</div>
 	</div>
 </form>
+
+<p class="muted"><small>{{ _('If you need help on setting up this plugin, please have a look at <a href="%(url)s" target="_blank">the documentation on Github</a>.', url = "https://github.com/OctoPrint/OctoPrint-MQTT/blob/master/README.md") }}</small></p>
+
