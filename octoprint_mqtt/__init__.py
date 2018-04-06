@@ -231,6 +231,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		broker_protocol = self._settings.get(["broker", "protocol"])
 
 		if broker_url is None:
+			self._logger.warn("Broker URL is None, can't connect to broker")
 			return
 
 		import paho.mqtt.client as mqtt
@@ -264,7 +265,8 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		self._mqtt.on_message = self._on_mqtt_message
 
 		self._mqtt.connect_async(broker_url, broker_port, keepalive=broker_keepalive)
-		self._mqtt.loop_start()
+		if self._mqtt.loop_start() == mqtt.MQTT_ERR_INVAL:
+			self._logger.error("Could not start MQTT connection, loop_start returned MQTT_ERR_INVAL")
 
 	def mqtt_disconnect(self, force=False):
 		if self._mqtt is None:
