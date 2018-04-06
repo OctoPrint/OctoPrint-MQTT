@@ -42,7 +42,16 @@ Examples:
 | octoprint/temperature/tool0  | `{"_timestamp": 1517190629, "actual": 65.3, "target": 210.0}`                              |
 | octoprint/temperature/bed    | `{"_timestamp": 1517190629, "actual": 42.1, "target": 65.0}`                               |
 
-You are able to deactivate topics in the settings. This allows you to e.g. only send temperature messages when you don't
+Additionally the plugin will publish `connected` to `octoprint/mqtt` on connection and instruct the MQTT broker to publish
+`disconnected` there if the connection gets closed. The published messages will be marked as retained.
+
+Examples:
+
+| Topic                        | Message              |
+|------------------------------|----------------------|
+| octoprint/mqtt               | `connected`          | 
+
+You are able to deactivate topics and the status/last will in the settings. This allows you to e.g. only send temperature messages when you don't
 need event or progress messages.
 
 The plugin also offers several helpers that allow other plugins to both publish as well as subscribe to
@@ -124,6 +133,12 @@ plugins:
 
             # should temperatures be published?
             #temperatureActive: true
+            
+            # should mqtt connection status / last will be published?
+            #lwActive: true
+            
+            # topic for connection status / last will
+            #lwTopic: mqtt
 ```
 
 ## Helpers
@@ -202,12 +217,6 @@ class MqttTestPlugin(octoprint.plugin.StartupPlugin):
 
 __plugin_implementations__ = [MqttTestPlugin()]
 ```
-
-## TODO
-
-  * Add LWT
-  * Generate client identifier based on OctoPrint instance
-  * Placeholders in base topic to distinguish between instances by path?
 
 ## Acknowledgements & Licensing
 

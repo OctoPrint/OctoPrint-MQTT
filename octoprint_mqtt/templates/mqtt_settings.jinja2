@@ -2,6 +2,7 @@
 	<ul class="nav nav-pills">
 		<li class="active"><a href="#settings_plugin_mqtt_broker" data-toggle="tab">{{ _('Broker') }}</a></li>
 		<li><a href="#settings_plugin_mqtt_topics" data-toggle="tab">{{ _('Topics') }}</a></li>
+		<li><a href="#settings_plugin_mqtt_lastwill" data-toggle="tab">{{ _('Status &amp; Last Will') }}</a></li>
 	</ul>
 
 	<div class="tab-content">
@@ -127,7 +128,7 @@
 				<div class="control-group">
 					<label class="control-label">{{ _('Base topic') }}</label>
 					<div class="controls">
-						<input type="text" class="input-large" id="settings_plugin_mqtt_publish_baseTopic" data-bind="value: settings.publish.baseTopic" />
+						<input type="text" class="input-large" id="settings_plugin_mqtt_publish_baseTopic" data-bind="textInput: settings.publish.baseTopic" />
 						<span class="help-block">{{ _('Base topic under which to publish OctoPrint\'s messages') }}</span>
 					</div>
 				</div>
@@ -145,7 +146,10 @@
 				<div class="control-group">
 					<label class="control-label">{{ _('Topic') }}</label>
 					<div class="controls">
-						<input type="text" class="input-large" id="settings_plugin_mqtt_publish_eventTopic" data-bind="value: settings.publish.eventTopic" />
+						<div class="input-prepend">
+							<span class="add-on" data-bind="text: settings.publish.baseTopic"></span>
+							<input type="text" class="input-large" id="settings_plugin_mqtt_publish_eventTopic" data-bind="value: settings.publish.eventTopic" />
+						</div>
 						<span class="help-block">{{ _('Topic for events, appended to the base topic, <code>{event}</code> will be substituted with the event name') }}</span>
 					</div>
 				</div>
@@ -204,7 +208,10 @@
 				<div class="control-group">
 					<label class="control-label">{{ _('Topic') }}</label>
 					<div class="controls">
-						<input type="text" class="input-large" id="settings_plugin_mqtt_publish_progressTopic" data-bind="value: settings.publish.progressTopic" />
+						<div class="input-prepend">
+							<span class="add-on" data-bind="text: settings.publish.baseTopic"></span>
+							<input type="text" class="input-large" id="settings_plugin_mqtt_publish_progressTopic" data-bind="value: settings.publish.progressTopic" />
+						</div>
 						<span class="help-block">{{ _('Topic for print and slicer progress, appended to the base topic, <code>{progress}</code> will be substituted with either <code>printing</code> or <code>slicing</code>') }}</span>
 					</div>
 				</div>
@@ -222,7 +229,10 @@
 				<div class="control-group">
 					<label class="control-label">{{ _('Topic') }}</label>
 					<div class="controls">
-						<input type="text" class="input-large" id="settings_plugin_mqtt_publish_temperatureTopic" data-bind="value: settings.publish.temperatureTopic" />
+						<div class="input-prepend">
+							<span class="add-on" data-bind="text: settings.publish.baseTopic"></span>
+							<input type="text" class="input-large" id="settings_plugin_mqtt_publish_temperatureTopic" data-bind="value: settings.publish.temperatureTopic" />
+						</div>
 						<span class="help-block">{{ _('Topic for temperatures, appended to the base topic, <code>{temp}</code> will be substituted with either <code>toolX</code> where X is the number of the tool or <code>bed</code>') }}</span>
 					</div>
 				</div>
@@ -236,7 +246,26 @@
 					</div>
 				</div>
 			</fieldset>
-
+		</div>
+		<div id="settings_plugin_mqtt_lastwill" class="tab-pane">
+			<span class="help-block">{{ _('Enable this to get a <code>connected</code> message published to the topic on connect of the client, and a <code>disconnected</code> message on disconnect (via the broker\'s last will mechanism). See <a href="%(url)s" target="_blank", rel="noopener noreferrer">here</a> for more information on the Last Will concept in MQTT.', url="https://www.hivemq.com/blog/mqtt-essentials-part-9-last-will-and-testament") }}</span>
+			<div class="control-group">
+				<div class="controls">
+					<label class="checkbox">
+						<input type="checkbox" data-bind="checked: settings.publish.lwActive" /> {{ _('Activate Last Will & Status publication') }}
+					</label>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">{{ _('Topic') }}</label>
+				<div class="controls">
+					<div class="input-prepend">
+						<span class="add-on" data-bind="text: settings.publish.baseTopic"></span>
+						<input type="text" class="input-large" id="settings_plugin_mqtt_publish_lwTopic" data-bind="value: settings.publish.lwTopic" />
+					</div>
+					<span class="help-block">{{ _('Topic for status and last will publication, relative to the configured base topic') }}</span>
+				</div>
+			</div>
 		</div>
 	</div>
 </form>

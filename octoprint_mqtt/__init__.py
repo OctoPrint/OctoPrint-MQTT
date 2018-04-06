@@ -41,6 +41,9 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 	                                             Events.SLICING_PROFILE_DELETED, Events.SLICING_PROFILE_MODIFIED),
 	                                 settings = (Events.SETTINGS_UPDATED,))
 
+	LWT_CONNECTED = "connected"
+	LWT_DISCONNECTED = "disconnected"
+
 	def __init__(self):
 		self._mqtt = None
 		self._mqtt_connected = False
@@ -115,21 +118,33 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
 				temperatureTopic="temperature/{temp}",
 				temperatureActive=True,
-				temperatureThreshold=0.1
+				temperatureThreshold=0.1,
+
+				lwTopic="mqtt",
+				lwActive=True
 			)
 		)
 
 	def on_settings_save(self, data):
 		old_broker_data = self._settings.get(["broker"])
+		old_lw_active = self._settings.get_boolean(["publish", "lwActive"])
+		old_lw_topic = self._get_topic("lw")
 
 		octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
 
 		new_broker_data = self._settings.get(["broker"])
-		diff = dict_minimal_mergediff(old_broker_data, new_broker_data)
-		if len(diff):
+		new_lw_active = self._settings.get_boolean(["publish", "lwActive"])
+		new_lw_topic = self._get_topic("lw")
+
+		broker_diff = dict_minimal_mergediff(old_broker_data, new_broker_data)
+		lw_diff = dict_minimal_mergediff(dict(lw_active=old_lw_active,
+		                                      lw_topic=old_lw_topic),
+		                                 dict(lw_active=new_lw_active,
+		                                      lw_topic=new_lw_topic))
+		if len(broker_diff) or len(lw_diff):
 			# something changed
-			self._logger.info("Settings changed ({!r}), reconnecting to broker".format(diff))
-			self.mqtt_disconnect(force=True)
+			self._logger.info("Settings changed (broker_diff={!r}, lw_diff={!r}), reconnecting to broker".format(broker_diff, lw_diff))
+			self.mqtt_disconnect(force=True, incl_lwt=old_lw_active, lwt=old_lw_topic)
 			self.mqtt_connect()
 
 	##~~ EventHandlerPlugin API
@@ -219,8 +234,6 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 	##~~ helpers
 
 	def mqtt_connect(self):
-		# TODO LWT
-
 		broker_url = self._settings.get(["broker", "url"])
 		broker_port = self._settings.get_int(["broker", "port"])
 		broker_username = self._settings.get(["broker", "username"])
@@ -229,6 +242,9 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		broker_tls = self._settings.get(["broker", "tls"], asdict=True)
 		broker_tls_insecure = self._settings.get_boolean(["broker", "tls_insecure"])
 		broker_protocol = self._settings.get(["broker", "protocol"])
+
+		lw_active = self._settings.get_boolean(["publish", "lwActive"])
+		lw_topic = self._get_topic("lw")
 
 		if broker_url is None:
 			self._logger.warn("Broker URL is None, can't connect to broker")
@@ -260,6 +276,9 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		if broker_tls_insecure and tls_active:
 			self._mqtt.tls_insecure_set(broker_tls_insecure)
 
+		if lw_active and lw_topic:
+			self._mqtt.will_set(lw_topic, self.LWT_DISCONNECTED, qos=1, retain=True)
+
 		self._mqtt.on_connect = self._on_mqtt_connect
 		self._mqtt.on_disconnect = self._on_mqtt_disconnect
 		self._mqtt.on_message = self._on_mqtt_message
@@ -268,9 +287,18 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		if self._mqtt.loop_start() == mqtt.MQTT_ERR_INVAL:
 			self._logger.error("Could not start MQTT connection, loop_start returned MQTT_ERR_INVAL")
 
-	def mqtt_disconnect(self, force=False):
+		if lw_active and lw_topic:
+			self._mqtt.publish(lw_topic, self.LWT_CONNECTED, qos=1, retain=True)
+
+	def mqtt_disconnect(self, force=False, incl_lwt=True, lwt=None):
 		if self._mqtt is None:
 			return
+
+		if incl_lwt:
+			if lwt is None:
+				lwt = self._get_topic("lw")
+			if lwt:
+				self._mqtt.publish(lwt, self.LWT_DISCONNECTED, qos=1, retain=True)
 
 		self._mqtt.loop_stop()
 
@@ -379,6 +407,8 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
 		if not rc == 0:
 			self._logger.error("Disconnected from mqtt broker for unknown reasons (network error?), rc = {}".format(rc))
+		else:
+			self._logger.info("Disconnected from mqtt broker")
 
 		self._mqtt_connected = False
 
