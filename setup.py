@@ -1,15 +1,10 @@
 # coding=utf-8
-import setuptools
-
-########################################################################################################################
-
-### Do not forget to adjust the following variables to your own plugin.
 
 # The plugin's identifier, has to be unique
 plugin_identifier = "mqtt"
 
 # The plugin's python package, should be "octoprint_<plugin identifier>", has to be unique
-plugin_package = "octoprint_%s" % plugin_identifier
+plugin_package = "octoprint_mqtt"
 
 # The plugin's human readable name. Can be overwritten within OctoPrint's internal data via __plugin_name__ in the
 # plugin module
@@ -34,63 +29,65 @@ plugin_url = "https://github.com/OctoPrint/OctoPrint-MQTT"
 # The plugin's license. Can be overwritten within OctoPrint's internal data via __plugin_license__ in the plugin module
 plugin_license = "AGPLv3"
 
+# Any additional requirements besides OctoPrint should be listed here
+plugin_requires = ["OctoPrint>=1.3.5"]
+
+### --------------------------------------------------------------------------------------------------------------------
+### More advanced options that you usually shouldn't have to touch follow after this point
+### --------------------------------------------------------------------------------------------------------------------
+
 # Additional package data to install for this plugin. The subfolders "templates", "static" and "translations" will
-# already be installed automatically if they exist.
+# already be installed automatically if they exist. Note that if you add something here you'll also need to update
+# MANIFEST.in to match to ensure that python setup.py sdist produces a source distribution that contains all your
+# files. This is sadly due to how python's setup.py works, see also http://stackoverflow.com/a/14159430/2028598
 plugin_additional_data = []
+
+# Any additional python packages you need to install with your plugin that are not contained in <plugin_package>.*
+plugin_additional_packages = []
+
+# Any python packages within <plugin_package>.* you do NOT want to install with your plugin
+plugin_ignored_packages = []
+
+# Additional parameters for the call to setuptools.setup. If your plugin wants to register additional entry points,
+# define dependency links or other things like that, this is the place to go. Will be merged recursively with the
+# default setup parameters as provided by octoprint_setuptools.create_plugin_setup_parameters using
+# octoprint.util.dict_merge.
+#
+# Example:
+#     plugin_requires = ["someDependency==dev"]
+#     additional_setup_parameters = {"dependency_links": ["https://github.com/someUser/someRepo/archive/master.zip#egg=someDependency-dev"]}
+additional_setup_parameters = {}
 
 ########################################################################################################################
 
-def package_data_dirs(source, sub_folders):
-	import os
-	dirs = []
+from setuptools import setup
 
-	for d in sub_folders:
-		folder = os.path.join(source, d)
-		if not os.path.exists(folder):
-			continue
+try:
+	import octoprint_setuptools
+except:
+	print("Could not import OctoPrint's setuptools, are you sure you are running that under "
+	      "the same python installation that OctoPrint is installed under?")
+	import sys
+	sys.exit(-1)
 
-		for dirname, _, files in os.walk(folder):
-			dirname = os.path.relpath(dirname, source)
-			for f in files:
-				dirs.append(os.path.join(dirname, f))
+setup_parameters = octoprint_setuptools.create_plugin_setup_parameters(
+	identifier=plugin_identifier,
+	package=plugin_package,
+	name=plugin_name,
+	version=plugin_version,
+	description=plugin_description,
+	author=plugin_author,
+	mail=plugin_author_email,
+	url=plugin_url,
+	license=plugin_license,
+	requires=plugin_requires,
+	additional_packages=plugin_additional_packages,
+	ignored_packages=plugin_ignored_packages,
+	additional_data=plugin_additional_data
+)
 
-	return dirs
+if len(additional_setup_parameters):
+	from octoprint.util import dict_merge
+	setup_parameters = dict_merge(setup_parameters, additional_setup_parameters)
 
-
-def requirements(filename):
-	return filter(lambda line: line and not line.startswith("#"), map(lambda line: line.strip(), open(filename).read().split("\n")))
-
-
-def params():
-	# Our metadata, as defined above
-	name = plugin_name
-	version = plugin_version
-	description = plugin_description
-	author = plugin_author
-	author_email = plugin_author_email
-	url = plugin_url
-	license = plugin_license
-
-	# we only have our plugin package to install
-	packages = [plugin_package]
-
-	# we might have additional data files in sub folders that need to be installed too
-	package_data = {plugin_package: package_data_dirs(plugin_package, ['static', 'templates', 'translations'] + plugin_additional_data)}
-	include_package_data = True
-
-	# If you have any package data that needs to be accessible on the file system, such as templates or static assets
-	# this plugin is not zip_safe.
-	zip_safe = False
-
-	# Read the requirements from our requirements.txt file
-	install_requires = requirements("requirements.txt")
-
-	# Hook the plugin into the "octoprint.plugin" entry point, mapping the plugin_identifier to the plugin_package.
-	# That way OctoPrint will be able to find the plugin and load it.
-	entry_points = {
-		"octoprint.plugin": ["%s = %s" % (plugin_identifier, plugin_package)]
-	}
-
-	return locals()
-
-setuptools.setup(**params())
+setup(**setup_parameters)
