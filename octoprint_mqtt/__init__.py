@@ -154,6 +154,10 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			self.on_print_progress(payload["origin"], payload["path"], 0)
 		elif event == Events.PRINT_DONE:
 			self.on_print_progress(payload["origin"], payload["path"], 100)
+		elif event == Events.FILE_SELECTED:
+			self.on_print_progress(payload["origin"], payload["path"], 0)
+		elif event == Events.FILE_DESELECTED:
+			self.on_print_progress("", "", 0)
 
 		topic = self._get_topic("event")
 
