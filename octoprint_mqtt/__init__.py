@@ -103,6 +103,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
 				eventTopic="event/{event}",
 				eventActive=True,
+				printerData=False,
 				events=dict(server=True,
 				            comm=True,
 				            files=True,
@@ -320,6 +321,8 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			timestamp = time.time()
 		payload["_timestamp"] = int(timestamp)
 
+		if self._settings.get_boolean(["publish", "printerData"]):
+			payload['printer_data'] = self._printer.get_current_data()
 		return self.mqtt_publish(topic, payload, retained=retained, qos=qos, allow_queueing=allow_queueing)
 
 	def mqtt_publish(self, topic, payload, retained=False, qos=0, allow_queueing=False):
