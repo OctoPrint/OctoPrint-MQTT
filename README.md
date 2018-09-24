@@ -1,5 +1,3 @@
----
-
 **⚠ Looking for maintenance help/adoption! ⚠**
 
 I have my hands way too full with regular OctoPrint maintenance, so any help with maintaining this plugin or even outright adoption would be greatly appreciated!
