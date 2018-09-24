@@ -1,6 +1,6 @@
-**⚠ Looking for maintenance help/adoption! ⚠**
+**⚠ Up for adoption! ⚠**
 
-I have my hands way too full with regular OctoPrint maintenance, so any help with maintaining this plugin or even outright adoption would be greatly appreciated!
+I have my hands way too full with OctoPrint's maintenance to give this plugin the attention it needs. Hence I'm looking for a new maintainer to adopt it. [Please get in touch here](https://github.com/OctoPrint/OctoPrint-MQTT/issues/47).
 
 ---
 
