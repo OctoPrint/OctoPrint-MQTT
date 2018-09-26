@@ -1,9 +1,3 @@
-**⚠ Up for adoption! ⚠**
-
-I have my hands way too full with OctoPrint's maintenance to give this plugin the attention it needs. Hence I'm looking for a new maintainer to adopt it. [Please get in touch here](https://github.com/OctoPrint/OctoPrint-MQTT/issues/47).
-
----
-
 # OctoPrint MQTT Plugin
 
 This is an OctoPrint Plugin that adds support for [MQTT](http://mqtt.org/) to OctoPrint.
