@@ -180,6 +180,10 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			data = dict(location=storage,
 			            path=path,
 			            progress=progress)
+						
+			if self._settings.get_boolean(["publish", "printerData"]):
+				data['printer_data'] = self._printer.get_current_data()
+
 			self.mqtt_publish_with_timestamp(topic.format(progress="printing"), data, retained=True)
 
 	def on_slicing_progress(self, slicer, source_location, source_path, destination_location, destination_path, progress):
@@ -321,8 +325,6 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			timestamp = time.time()
 		payload["_timestamp"] = int(timestamp)
 
-		if self._settings.get_boolean(["publish", "printerData"]):
-			payload['printer_data'] = self._printer.get_current_data()
 		return self.mqtt_publish(topic, payload, retained=retained, qos=qos, allow_queueing=allow_queueing)
 
 	def mqtt_publish(self, topic, payload, retained=False, qos=0, allow_queueing=False):

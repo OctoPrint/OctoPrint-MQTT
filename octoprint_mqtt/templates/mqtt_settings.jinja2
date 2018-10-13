@@ -131,10 +131,6 @@
 						<input type="text" class="input-large" id="settings_plugin_mqtt_publish_baseTopic" data-bind="textInput: settings.publish.baseTopic" />
 						<span class="help-block">{{ _('Base topic under which to publish OctoPrint\'s messages') }}</span>
 					</div>
-					<div class="controls">
-							<label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.printerData" /> {{ _('Include extended information') }} </label>
-							<span class="help-block">{{ _('Include extensive information about the print as part of each published topic under a "printer_data" attribute') }}</span>
-					</div>
 				</div>
 			</fieldset>
 
@@ -207,6 +203,12 @@
 						<label class="checkbox">
 							<input type="checkbox" data-bind="checked:  settings.publish.progressActive" /> {{ _('Activate progress messages') }}
 						</label>
+					</div>
+					<div class="controls">
+						<label class="checkbox">
+							<input type="checkbox" data-bind="checked:  settings.publish.printerData" /> {{ _('Include extended information') }} 
+						</label>
+						<span class="help-block">{{ _('Include extended information about the print as part of the print progress topic under a "printer_data" attribute') }}</span>
 					</div>
 				</div>
 				<div class="control-group">
