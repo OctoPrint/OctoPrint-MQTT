@@ -103,6 +103,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
 				eventTopic="event/{event}",
 				eventActive=True,
+				printerData=False,
 				events=dict(server=True,
 				            comm=True,
 				            files=True,
@@ -154,6 +155,10 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			self.on_print_progress(payload["origin"], payload["path"], 0)
 		elif event == Events.PRINT_DONE:
 			self.on_print_progress(payload["origin"], payload["path"], 100)
+		elif event == Events.FILE_SELECTED:
+			self.on_print_progress(payload["origin"], payload["path"], 0)
+		elif event == Events.FILE_DESELECTED:
+			self.on_print_progress("", "", 0)
 
 		topic = self._get_topic("event")
 
@@ -175,6 +180,10 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			data = dict(location=storage,
 			            path=path,
 			            progress=progress)
+						
+			if self._settings.get_boolean(["publish", "printerData"]):
+				data['printer_data'] = self._printer.get_current_data()
+
 			self.mqtt_publish_with_timestamp(topic.format(progress="printing"), data, retained=True)
 
 	def on_slicing_progress(self, slicer, source_location, source_path, destination_location, destination_path, progress):

@@ -54,6 +54,16 @@ Examples:
 You are able to deactivate topics and the status/last will in the settings. This allows you to e.g. only send temperature messages when you don't
 need event or progress messages.
 
+If the Printer Data option is set, then extended printer information as outlined in the
+[Common data model](http://docs.octoprint.org/en/master/api/datamodel.html) will be included in a `printer_data` attribute.
+Useful to get information such as print time remaining.
+
+Example:
+
+| Topic                        | Message              |
+|------------------------------|----------------------|
+| octoprint/progress/printing  | `{"progress": 0, "_timestamp": 1525654824, "location": "local", "path": "Stringing_Test.gco", "printer_data": {"progress": {"completion": 0.008520926537352922, "printTimeLeftOrigin": "average", "printTime": 0, "printTimeLeft": 273, "filepos": 139}, "state": {"text": "Printing", "flags": {"cancelling": false, "paused": false, "operational": true, "pausing": false, "printing": true, "sdReady": true, "error": false, "ready": false, "closedOrError": false}}, "currentZ": null, "job": {"file": {"origin": "local", "name": "Stringing_Test.gco", "date": 1525586467, "path": "Stringing_Test.gco", "display": "Stringing_Test.gco", "size": 1631278}, "estimatedPrintTime": 1242.9603101308749, "averagePrintTime": 273.6990565955639, "filament": {"tool0": {"volume": 0.0, "length": 363.0717599999999}}, "lastPrintTime": 269.25606203079224}, "offsets": {}}}` |
+
 The plugin also offers several helpers that allow other plugins to both publish as well as subscribe to
 MQTT topics, see below for details and a usage example.
 
@@ -113,6 +123,10 @@ plugins:
             # base topic under which to publish OctoPrint's messages
             #baseTopic: octoprint/
 
+            # include extended printer data in a printer_data attribute, this will
+            # greatly increase the size of each message
+            # printerData: false
+
             # topic for events, appended to the base topic, '{event}' will
             # be substituted with the event name
             #eventTopic: event/{event}
@@ -160,6 +174,9 @@ be accepted (e.g. due to the plugin being not connected to the broker and queuei
 
 Publishes `payload` to `topic` including a timestamp. `payload` *must* be a Python `dict` and will be extended by a 
 property `_timestamp` set to the provided `timestamp` or - if unset - the current timestamp.
+
+If the `publish.printerData` option is set, then all of the data from `self._printer.get_current_data()` will be
+included as a `printer_data` attribute in the payload. Useful to get things such as time remaining.
 
 Everything else behaves as `mqtt_publish` (which is also used internally).
 
