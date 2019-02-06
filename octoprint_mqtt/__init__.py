@@ -209,9 +209,22 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 				if key == "time":
 					continue
 
-				if key not in self.lastTemp \
-						or abs(value["actual"] - self.lastTemp[key]["actual"]) >= threshold \
-						or value["target"] != self.lastTemp[key]["target"]:
+
+				# in issue #42 the problem wasn't a failure to get the key, but
+				# the last_temp value was None. Hence "or 0". However by pulling
+				# lastTemp we risk failing on the dict navigation, so we'll be careful.
+				safe_actual_temp = value.get("actual") or 0
+				safe_actual_target_temp = value.get("target") or 0
+				safe_last_temp   = 0
+				safe_last_target_temp   = 0
+				if key in self.lastTemp:
+					safe_last_temp = self.lastTemp[key].get("actual") or 0
+					safe_last_target_temp = self.lastTemp[key].get("target") or 0
+
+				# some pedantry on the target temp to keep away from float math problems
+				if not safe_last_temp \
+					or abs(safe_actual_temp - safe_last_temp) >= threshold \
+					or abs(safe_actual_target_temp - safe_last_target_temp) >= 0.1:
 					# unknown key, new actual or new target -> update mqtt topic!
 					dataset = dict(actual=value["actual"],
 					               target=value["target"])
