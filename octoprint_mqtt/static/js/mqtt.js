@@ -7,6 +7,7 @@ $(function() {
 
         self.showUserCredentials = ko.observable(false);
         self.showSsl = ko.observable(false);
+        self.showClientID = ko.observable(false);
 
         self.settings = undefined;
         self.availableProtocols = ko.observableArray(['MQTTv31','MQTTv311']);
@@ -19,6 +20,9 @@ $(function() {
 
             // show SSL/TLS config options if any of the corresponding settings are set
             self.showSsl(!!self.settings.broker.tls && !!self.settings.broker.tls.cacerts && !!self.settings.broker.tls.cacerts())
+
+            // show client_id options of client_id is set
+            self.showClientID(!!self.settings.client.client_id());
         };
     }
 
