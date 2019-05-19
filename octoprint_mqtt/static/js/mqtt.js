@@ -21,7 +21,7 @@ $(function() {
             // show SSL/TLS config options if any of the corresponding settings are set
             self.showSsl(!!self.settings.broker.tls && !!self.settings.broker.tls.cacerts && !!self.settings.broker.tls.cacerts())
 
-            // show client_id options of client_id is set
+            // show client_id options if client_id is set
             self.showClientID(!!self.settings.client.client_id());
         };
     }
