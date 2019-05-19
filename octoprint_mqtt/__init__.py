@@ -123,26 +123,33 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
 				lwTopic="mqtt",
 				lwActive=True
-			)
+			),
+			client=dict(
+				client_id=None
+			),
+			timestamp_fieldname="_timestamp"
 		)
 
 	def on_settings_save(self, data):
 		old_broker_data = self._settings.get(["broker"])
 		old_lw_active = self._settings.get_boolean(["publish", "lwActive"])
 		old_lw_topic = self._get_topic("lw")
+		old_client_data = self._settings.get(["client"])
 
 		octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
 
 		new_broker_data = self._settings.get(["broker"])
 		new_lw_active = self._settings.get_boolean(["publish", "lwActive"])
 		new_lw_topic = self._get_topic("lw")
+		new_client_data = self._settings.get(["client"])
 
 		broker_diff = dict_minimal_mergediff(old_broker_data, new_broker_data)
+		client_diff = dict_minimal_mergediff(old_client_data, new_client_data)
 		lw_diff = dict_minimal_mergediff(dict(lw_active=old_lw_active,
 		                                      lw_topic=old_lw_topic),
 		                                 dict(lw_active=new_lw_active,
 		                                      lw_topic=new_lw_topic))
-		if len(broker_diff) or len(lw_diff):
+		if len(broker_diff) or len(lw_diff) or len(client_diff):
 			# something changed
 			self._logger.info("Settings changed (broker_diff={!r}, lw_diff={!r}), reconnecting to broker".format(broker_diff, lw_diff))
 			self.mqtt_disconnect(force=True, incl_lwt=old_lw_active, lwt=old_lw_topic)
@@ -264,6 +271,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		broker_tls = self._settings.get(["broker", "tls"], asdict=True)
 		broker_tls_insecure = self._settings.get_boolean(["broker", "tls_insecure"])
 		broker_protocol = self._settings.get(["broker", "protocol"])
+		client_id = self._settings.get(["client","client_id"])
 
 		lw_active = self._settings.get_boolean(["publish", "lwActive"])
 		lw_topic = self._get_topic("lw")
@@ -282,7 +290,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			protocol = mqtt.MQTTv31
 
 		if self._mqtt is None:
-			self._mqtt = mqtt.Client(protocol=protocol)
+			self._mqtt = mqtt.Client(client_id=client_id, protocol=protocol)
 
 		if broker_username is not None:
 			self._mqtt.username_pw_set(broker_username, password=broker_password)
@@ -336,7 +344,9 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
 		if timestamp is None:
 			timestamp = time.time()
-		payload["_timestamp"] = int(timestamp)
+
+		timestamp_fieldname = self._settings.get(["timestamp_fieldname"])
+		payload[timestamp_fieldname] = int(timestamp)
 
 		return self.mqtt_publish(topic, payload, retained=retained, qos=qos, allow_queueing=allow_queueing)
 

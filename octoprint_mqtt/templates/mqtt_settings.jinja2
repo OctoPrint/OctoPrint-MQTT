@@ -45,6 +45,24 @@
 			<div class="control-group">
 				<div class="controls">
 					<label class="checkbox">
+						<input type="checkbox" data-bind="checked: showClientID"> {{ _('The broker requires static client id, show options') }}
+					</label>
+				</div>
+			</div>
+
+			<div data-bind="visible: showClientID" style="display: none">
+				<div class="control-group">
+					<label class="control-label">{{ _('Client ID') }}</label>
+					<div class="controls">
+						<input type="text" class="input-large" id="settings_plugin_mqtt_client_client_id" data-bind="value: settings.client.client_id" />
+						<span class="help-block">{{ _('The static client_id to use to connect with the broker') }}</span>
+					</div>
+				</div>
+			</div>
+
+			<div class="control-group">
+				<div class="controls">
+					<label class="checkbox">
 						<input type="checkbox" data-bind="checked: showUserCredentials"> {{ _('The broker requires username and password to connect, show options') }}
 					</label>
 				</div>
@@ -130,6 +148,13 @@
 					<div class="controls">
 						<input type="text" class="input-large" id="settings_plugin_mqtt_publish_baseTopic" data-bind="textInput: settings.publish.baseTopic" />
 						<span class="help-block">{{ _('Base topic under which to publish OctoPrint\'s messages') }}</span>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">{{ _('Timestamp Field Name') }}</label>
+					<div class="controls">
+						<input type="text" class="input-large" id="settings_plugin_mqtt_timestamp_fieldname" data-bind="textInput: settings.timestamp_fieldname" />
+						<span class="help-block">{{ _('Field name to use when publishing timestamped messages.') }}</span>
 					</div>
 				</div>
 			</fieldset>
