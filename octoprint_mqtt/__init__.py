@@ -219,7 +219,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 					continue
 
 				# skip any entries that are none or zero.
-				if not value.get("actual") and not value.get("target"):
+				if not (value.get("actual") and value.get("target")):
 					continue
 
 				# in issue #42 the problem wasn't a failure to get the key, but
