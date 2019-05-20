@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 
 import json
+import six
 import time
 from collections import deque
 
@@ -9,6 +10,7 @@ import octoprint.plugin
 
 from octoprint.events import Events
 from octoprint.util import dict_minimal_mergediff
+
 
 class MqttPlugin(octoprint.plugin.SettingsPlugin,
                  octoprint.plugin.StartupPlugin,
@@ -187,7 +189,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			data = dict(location=storage,
 			            path=path,
 			            progress=progress)
-						
+
 			if self._settings.get_boolean(["publish", "printerData"]):
 				data['printer_data'] = self._printer.get_current_data()
 
@@ -216,14 +218,17 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 				if key == "time":
 					continue
 
+				# skip any entries that are none or zero.
+				if not value.get("actual") and not value.get("target"):
+					continue
 
 				# in issue #42 the problem wasn't a failure to get the key, but
 				# the last_temp value was None. Hence "or 0". However by pulling
 				# lastTemp we risk failing on the dict navigation, so we'll be careful.
 				safe_actual_temp = value.get("actual") or 0
 				safe_actual_target_temp = value.get("target") or 0
-				safe_last_temp   = 0
-				safe_last_target_temp   = 0
+				safe_last_temp = 0
+				safe_last_target_temp = 0
 				if key in self.lastTemp:
 					safe_last_temp = self.lastTemp[key].get("actual") or 0
 					safe_last_target_temp = self.lastTemp[key].get("target") or 0
@@ -239,7 +244,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 					                                 retained=True,
 					                                 allow_queueing=True,
 					                                 timestamp=data["time"])
-					self.lastTemp.update({key:data[key]})
+					self.lastTemp.update({key: data[key]})
 
 	##~~ Softwareupdate hook
 
@@ -271,7 +276,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		broker_tls = self._settings.get(["broker", "tls"], asdict=True)
 		broker_tls_insecure = self._settings.get_boolean(["broker", "tls_insecure"])
 		broker_protocol = self._settings.get(["broker", "protocol"])
-		client_id = self._settings.get(["client","client_id"])
+		client_id = self._settings.get(["client", "client_id"])
 
 		lw_active = self._settings.get_boolean(["publish", "lwActive"])
 		lw_topic = self._get_topic("lw")
@@ -282,8 +287,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
 		import paho.mqtt.client as mqtt
 
-		protocol_map = dict(MQTTv31=mqtt.MQTTv31,
-		                    MQTTv311=mqtt.MQTTv311)
+		protocol_map = dict(MQTTv31=mqtt.MQTTv31, MQTTv311=mqtt.MQTTv311)
 		if broker_protocol in protocol_map:
 			protocol = protocol_map[broker_protocol]
 		else:
@@ -299,7 +303,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		if broker_tls:
 			tls_args = dict((key, value) for key, value in broker_tls.items() if value)
 			ca_certs = tls_args.pop("ca_certs", None)
-			if ca_certs: # cacerts must not be None for tls_set to work
+			if ca_certs:  # cacerts must not be None for tls_set to work
 				self._mqtt.tls_set(ca_certs, **tls_args)
 				tls_active = True
 
@@ -351,7 +355,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		return self.mqtt_publish(topic, payload, retained=retained, qos=qos, allow_queueing=allow_queueing)
 
 	def mqtt_publish(self, topic, payload, retained=False, qos=0, allow_queueing=False):
-		if not isinstance(payload, basestring):
+		if not isinstance(payload, six.string_types):
 			payload = json.dumps(payload)
 
 		if not self._mqtt_connected:
@@ -462,6 +466,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 	def _get_topic(self, topic_type):
 		sub_topic = self._settings.get(["publish", topic_type + "Topic"])
 		topic_active = self._settings.get(["publish", topic_type + "Active"])
+
 		if not sub_topic or not topic_active:
 			return None
 
@@ -475,6 +480,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
 
 __plugin_name__ = "MQTT"
+
 
 def __plugin_load__():
 	plugin = MqttPlugin()
