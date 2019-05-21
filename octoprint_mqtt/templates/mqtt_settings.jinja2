@@ -45,6 +45,15 @@
 			<div class="control-group">
 				<div class="controls">
 					<label class="checkbox">
+						<input type="checkbox" data-bind="checked: settings.broker.retain" /> {{ _('Enable retain flag') }}
+					  <span class="help-block">{{ _('Enable or disable retain flag through entire plugin') }}</span>
+					</label>
+				</div>
+			</div>
+
+			<div class="control-group">
+				<div class="controls">
+					<label class="checkbox">
 						<input type="checkbox" data-bind="checked: showClientID"> {{ _('The broker requires static client id, show options') }}
 					</label>
 				</div>

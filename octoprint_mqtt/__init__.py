@@ -89,6 +89,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 	##~~ SettingsPlugin API
 
 	def get_settings_defaults(self):
+
 		return dict(
 			broker=dict(
 				url=None,
@@ -98,11 +99,11 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 				keepalive=60,
 				tls=dict(),
 				tls_insecure=False,
-				protocol="MQTTv31"
+				protocol="MQTTv31",
+				retain=True
 			),
 			publish=dict(
-				baseTopic="octoprint/",
-
+				baseTopic="octoPrint/",
 				eventTopic="event/{event}",
 				eventActive=True,
 				printerData=False,
@@ -193,7 +194,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			if self._settings.get_boolean(["publish", "printerData"]):
 				data['printer_data'] = self._printer.get_current_data()
 
-			self.mqtt_publish_with_timestamp(topic.format(progress="printing"), data, retained=True)
+			self.mqtt_publish_with_timestamp(topic.format(progress="printing"), data)
 
 	def on_slicing_progress(self, slicer, source_location, source_path, destination_location, destination_path, progress):
 		topic = self._get_topic("progress")
@@ -205,7 +206,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			            destination_location=destination_location,
 			            destination_path=destination_path,
 			            progress=progress)
-			self.mqtt_publish_with_timestamp(topic.format(progress="slicing"), data, retained=True)
+			self.mqtt_publish_with_timestamp(topic.format(progress="slicing"), data)
 
 	##~~ PrinterCallback
 
@@ -241,7 +242,6 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 					dataset = dict(actual=value["actual"],
 					               target=value["target"])
 					self.mqtt_publish_with_timestamp(topic.format(temp=key), dataset,
-					                                 retained=True,
 					                                 allow_queueing=True,
 					                                 timestamp=data["time"])
 					self.lastTemp.update({key: data[key]})
@@ -310,8 +310,9 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		if broker_tls_insecure and tls_active:
 			self._mqtt.tls_insecure_set(broker_tls_insecure)
 
+		_retain = self._settings.get_boolean(["broker", "retain"])
 		if lw_active and lw_topic:
-			self._mqtt.will_set(lw_topic, self.LWT_DISCONNECTED, qos=1, retain=True)
+			self._mqtt.will_set(lw_topic, self.LWT_DISCONNECTED, qos=1, retain=_retain)
 
 		self._mqtt.on_connect = self._on_mqtt_connect
 		self._mqtt.on_disconnect = self._on_mqtt_disconnect
@@ -322,7 +323,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			self._logger.error("Could not start MQTT connection, loop_start returned MQTT_ERR_INVAL")
 
 		if lw_active and lw_topic:
-			self._mqtt.publish(lw_topic, self.LWT_CONNECTED, qos=1, retain=True)
+			self._mqtt.publish(lw_topic, self.LWT_CONNECTED, qos=1, retain=_retain)
 
 	def mqtt_disconnect(self, force=False, incl_lwt=True, lwt=None):
 		if self._mqtt is None:
@@ -332,7 +333,8 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			if lwt is None:
 				lwt = self._get_topic("lw")
 			if lwt:
-				self._mqtt.publish(lwt, self.LWT_DISCONNECTED, qos=1, retain=True)
+				_retain = self._settings.get_boolean(["broker", "retain"])
+				self._mqtt.publish(lwt, self.LWT_DISCONNECTED, qos=1, retain=_retain)
 
 		self._mqtt.loop_stop()
 
@@ -340,7 +342,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			time.sleep(1)
 			self._mqtt.loop_stop(force=True)
 
-	def mqtt_publish_with_timestamp(self, topic, payload, retained=False, qos=0, allow_queueing=False, timestamp=None):
+	def mqtt_publish_with_timestamp(self, topic, payload, qos=0, allow_queueing=False, timestamp=None):
 		if not payload:
 			payload = dict()
 		if not isinstance(payload, dict):
@@ -352,22 +354,23 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		timestamp_fieldname = self._settings.get(["timestamp_fieldname"])
 		payload[timestamp_fieldname] = int(timestamp)
 
-		return self.mqtt_publish(topic, payload, retained=retained, qos=qos, allow_queueing=allow_queueing)
+		return self.mqtt_publish(topic, payload, qos=qos, allow_queueing=allow_queueing)
 
-	def mqtt_publish(self, topic, payload, retained=False, qos=0, allow_queueing=False):
+	def mqtt_publish(self, topic, payload, qos=0, allow_queueing=False):
 		if not isinstance(payload, six.string_types):
 			payload = json.dumps(payload)
 
 		if not self._mqtt_connected:
 			if allow_queueing:
 				self._logger.debug("Not connected, enqueuing message: {topic} - {payload}".format(**locals()))
-				self._mqtt_publish_queue.append((topic, payload, retained, qos))
+				self._mqtt_publish_queue.append((topic, payload, qos))
 				return True
 			else:
 				return False
 
-		self._mqtt.publish(topic, payload=payload, retain=retained, qos=qos)
-		self._logger.debug("Sent message: {topic} - {payload}".format(**locals()))
+		_retain = self._settings.get_boolean(["broker", "retain"])
+		self._mqtt.publish(topic, payload=payload, retain=_retain, qos=qos)
+		self._logger.debug("Sent message: {topic} - {payload}, retain={_retain}".format(**locals()))
 		return True
 
 	def mqtt_subscribe(self, topic, callback, args=None, kwargs=None):
@@ -423,9 +426,10 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
 		if self._mqtt_publish_queue:
 			try:
+				_retain = self._settings.get_boolean(["broker", "retain"])
 				while True:
-					topic, payload, retained, qos = self._mqtt_publish_queue.popleft()
-					self._mqtt.publish(topic, payload=payload, retain=retained, qos=qos)
+					topic, payload, qos = self._mqtt_publish_queue.popleft()
+					self._mqtt.publish(topic, payload=payload, retain=_retain, qos=qos)
 			except IndexError:
 				# that's ok, queue is just empty
 				pass
