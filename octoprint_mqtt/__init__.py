@@ -100,7 +100,8 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 				tls=dict(),
 				tls_insecure=False,
 				protocol="MQTTv31",
-				retain=True
+				retain=True,
+				clean_session=False
 			),
 			publish=dict(
 				baseTopic="octoPrint/",
@@ -277,6 +278,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		broker_tls_insecure = self._settings.get_boolean(["broker", "tls_insecure"])
 		broker_protocol = self._settings.get(["broker", "protocol"])
 		client_id = self._settings.get(["client", "client_id"])
+		clean_session = self._settings.get_boolean(["broker", "clean_session"])
 
 		lw_active = self._settings.get_boolean(["publish", "lwActive"])
 		lw_topic = self._get_topic("lw")
@@ -294,7 +296,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			protocol = mqtt.MQTTv31
 
 		if self._mqtt is None:
-			self._mqtt = mqtt.Client(client_id=client_id, protocol=protocol)
+			self._mqtt = mqtt.Client(client_id=client_id, protocol=protocol, clean_session=clean_session)
 
 		if broker_username is not None:
 			self._mqtt.username_pw_set(broker_username, password=broker_password)

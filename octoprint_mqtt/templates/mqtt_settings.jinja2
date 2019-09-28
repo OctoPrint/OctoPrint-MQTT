@@ -54,6 +54,15 @@
 			<div class="control-group">
 				<div class="controls">
 					<label class="checkbox">
+						<input type="checkbox" data-bind="checked: settings.broker.clean_session" /> {{ _('Clean Session') }}
+					  <span class="help-block">{{ _('The broker requires clean session to be enabled') }}</span>
+					</label>
+				</div>
+			</div>
+
+			<div class="control-group">
+				<div class="controls">
+					<label class="checkbox">
 						<input type="checkbox" data-bind="checked: showClientID"> {{ _('The broker requires static client id, show options') }}
 					</label>
 				</div>
