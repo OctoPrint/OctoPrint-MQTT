@@ -101,7 +101,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 				tls_insecure=False,
 				protocol="MQTTv31",
 				retain=True,
-				clean_session=False
+				clean_session=True
 			),
 			publish=dict(
 				baseTopic="octoPrint/",
