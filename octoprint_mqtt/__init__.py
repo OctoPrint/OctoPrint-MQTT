@@ -486,7 +486,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
 
 __plugin_name__ = "MQTT"
-
+__plugin_pythoncompat__ = ">=2.7,<4"
 
 def __plugin_load__():
 	plugin = MqttPlugin()
