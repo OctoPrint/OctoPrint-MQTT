@@ -48,7 +48,6 @@ plugin_additional_packages = []
 # Any python packages within <plugin_package>.* you do NOT want to install with your plugin
 plugin_ignored_packages = []
 
-
 # Additional parameters for the call to setuptools.setup. If your plugin wants to register additional entry points,
 # define dependency links or other things like that, this is the place to go. Will be merged recursively with the
 # default setup parameters as provided by octoprint_setuptools.create_plugin_setup_parameters using
