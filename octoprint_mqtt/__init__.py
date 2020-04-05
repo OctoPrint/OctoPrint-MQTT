@@ -209,6 +209,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 				if key == "time":
 					continue
 
+				if not value["actual"]: continue
 				if key not in self.lastTemp \
 						or abs(value["actual"] - self.lastTemp[key]["actual"]) >= threshold \
 						or value["target"] != self.lastTemp[key]["target"]:
@@ -328,6 +329,10 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		return self.mqtt_publish(topic, payload, retained=retained, qos=qos, allow_queueing=allow_queueing)
 
 	def mqtt_publish(self, topic, payload, retained=False, qos=0, allow_queueing=False):
+		try:
+			basestring
+		except NameError:
+			basestring = (str, bytes)
 		if not isinstance(payload, basestring):
 			payload = json.dumps(payload)
 
@@ -452,6 +457,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
 
 __plugin_name__ = "MQTT"
+__plugin_pythoncompat__ = ">=2.7,<4"
 
 def __plugin_load__():
 	plugin = MqttPlugin()
