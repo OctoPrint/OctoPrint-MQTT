@@ -324,9 +324,6 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 		if self._mqtt.loop_start() == mqtt.MQTT_ERR_INVAL:
 			self._logger.error("Could not start MQTT connection, loop_start returned MQTT_ERR_INVAL")
 
-		if lw_active and lw_topic:
-			self._mqtt.publish(lw_topic, self.LWT_CONNECTED, qos=1, retain=_retain)
-
 	def mqtt_disconnect(self, force=False, incl_lwt=True, lwt=None):
 		if self._mqtt is None:
 			return
@@ -425,10 +422,14 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			return
 
 		self._logger.info("Connected to mqtt broker")
+		lw_active = self._settings.get_boolean(["publish", "lwActive"])
+		lw_topic = self._get_topic("lw")
+		_retain = self._settings.get_boolean(["broker", "retain"])
+		if lw_active and lw_topic:
+			self._mqtt.publish(lw_topic, self.LWT_CONNECTED, qos=1, retain=_retain)
 
 		if self._mqtt_publish_queue:
 			try:
-				_retain = self._settings.get_boolean(["broker", "retain"])
 				while True:
 					topic, payload, qos = self._mqtt_publish_queue.popleft()
 					self._mqtt.publish(topic, payload=payload, retain=_retain, qos=qos)
