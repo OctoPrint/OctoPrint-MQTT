@@ -47,6 +47,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 	def __init__(self):
 		self._mqtt = None
 		self._mqtt_connected = False
+		self._mqtt_reset_state = True
 
 		self._mqtt_subscriptions = []
 
@@ -409,6 +410,11 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			self._logger.debug("Subscribed to topics")
 
 		self._mqtt_connected = True
+
+		if self._mqtt_reset_state:
+			self.on_print_progress("", "", 0)
+			self.on_slicing_progress("", "", "", "", "", 0)
+			self._mqtt_reset_state = False
 
 	def _on_mqtt_disconnect(self, client, userdata, rc):
 		if not client == self._mqtt:
