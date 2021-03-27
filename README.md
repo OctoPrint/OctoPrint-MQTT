@@ -157,12 +157,12 @@ plugins:
 
 ## Helpers
 
-### mqtt_publish(topic, payload, retained=False, qos=0, allow_queueing=False)
+### mqtt_publish(topic, payload, retained=False, qos=0, allow_queueing=False, raw_data=False)
 
 Publishes `payload` to `topic`. If `retained` is set to `True`, message will be flagged to be retained by the
 broker. The QOS setting can be overridden with the `qos` parameter.
 
-`payload` may be a string in which case it will be sent as is. Otherwise a value conversion to JSON will be performed.
+`payload` may be a string in which case it will be sent as is. Otherwise a value conversion to JSON will be performed, unless you set `raw_data` to `True`.
 
 If the MQTT plugin is currently not connected to the broker but `allow_queueing` is `True`, the message will be
 stored internally and published upon connection to the broker.
