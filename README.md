@@ -119,6 +119,9 @@ plugins:
             # configure protocol version to use, valid values: MQTTv31 and MQTTv311
             #protocol: MQTTv31
 
+            # should mqtt connection status / last will be retained?
+            #lwRetain: true
+
         publish:
             # base topic under which to publish OctoPrint's messages
             #baseTopic: octoprint/
