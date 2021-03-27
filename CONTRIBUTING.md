@@ -5,11 +5,11 @@ This document outlines what you need to know before creating [bug reports](#bug-
 
 ## Bug reports
 
-[Use the search first](https://github.com/OctoPrint/OctoPrint-MQTT/issues?q=is%3Aissue). Nothing found that sounds 
-like your bug? Then please use the [provided ticket template](https://raw.githubusercontent.com/OctoPrint/OctoPrint-MQTT/master/.github/ISSUE_TEMPLATE.md) 
+[Use the search first](https://github.com/OctoPrint/OctoPrint-MQTT/issues?q=is%3Aissue). Nothing found that sounds
+like your bug? Then please use the [provided ticket template](https://raw.githubusercontent.com/OctoPrint/OctoPrint-MQTT/master/.github/ISSUE_TEMPLATE.md)
 (which also gets prefilled) and make sure to *provide all requested information*.
 
-Be advised though that I have my hands full with maintaining [core OctoPrint](https://github.com/foosel/OctoPrint) 
+Be advised though that I have my hands full with maintaining [core OctoPrint](https://github.com/foosel/OctoPrint)
 already, so fixing bugs here heavily depends on others sending pull requests.
 
 ## Feature requests
@@ -17,7 +17,7 @@ already, so fixing bugs here heavily depends on others sending pull requests.
 [Use the search first](https://github.com/OctoPrint/OctoPrint-MQTT/issues?q=is%3Aissue). Nothing found that sounds
 like your feature request? Then feel free to create it.
 
-Be advised though that I have my hands full with maintaining [core OctoPrint](https://github.com/foosel/OctoPrint) 
+Be advised though that I have my hands full with maintaining [core OctoPrint](https://github.com/foosel/OctoPrint)
 already, so implementing features here heavily depends on others sending pull requests.
 
 ## Pull requests

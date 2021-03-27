@@ -19,7 +19,7 @@ The print progress and the slicing progress will also be send to the topic `octo
 `octoprint/progress/slicing` respectively. The payload will contain the `progress` as an integer between 0 and 100.
 Print progress will also contain information about the currently printed file (storage `location` and `path` on storage),
 slicing progress will contain information about the currently sliced file (storage `source_location` and `destination_location`,
-`source_path` and `destination_path` on storage, used `slicer`). The payload will also contain a property `_timestamp` 
+`source_path` and `destination_path` on storage, used `slicer`). The payload will also contain a property `_timestamp`
 containing the unix timestamp of when the message was created. The published progress messages will be marked as
 retained.
 
@@ -32,7 +32,7 @@ Examples:
 
 The plugin also publishes the temperatures of the tools and the bed to `octoprint/temperature/<tool>` where `<tool>` will either
 be 'bed' or 'toolX' (X is the number of the tool). The payload will contain the `actual` and the `target` temperature as floating point value plus the current `time` as unix timestamp in seconds.
-New messages will not be published constantly, but only when a value changes. The payload will also contain a property `_timestamp` 
+New messages will not be published constantly, but only when a value changes. The payload will also contain a property `_timestamp`
 containing the unix timestamp of when the message was created. The published messages will be marked as retained.
 
 Examples:
@@ -49,7 +49,7 @@ Examples:
 
 | Topic                        | Message              |
 |------------------------------|----------------------|
-| octoprint/mqtt               | `connected`          | 
+| octoprint/mqtt               | `connected`          |
 
 You are able to deactivate topics and the status/last will in the settings. This allows you to e.g. only send temperature messages when you don't
 need event or progress messages.
@@ -134,23 +134,23 @@ plugins:
             # should events be published?
             #eventActive: true
 
-            # topic for print and slicer progress, appended to the base topic, 
+            # topic for print and slicer progress, appended to the base topic,
             # '{progress}' will be substituted with either 'printing' or 'slicing'
             #progressTopic: progress/{progress}
 
             # should progress be published?
             #progressActive: true
 
-            # topic for temperatures, appended to the base topic, 
+            # topic for temperatures, appended to the base topic,
             # '{temp}' will be substituted with either 'toolX' (X is the number of the tool) or 'bed'
-            #temperatureTopic: temperature/{temp}  
+            #temperatureTopic: temperature/{temp}
 
             # should temperatures be published?
             #temperatureActive: true
-            
+
             # should mqtt connection status / last will be published?
             #lwActive: true
-            
+
             # topic for connection status / last will
             #lwTopic: mqtt
 ```
@@ -172,7 +172,7 @@ be accepted (e.g. due to the plugin being not connected to the broker and queuei
 
 ### mqtt_publish_with_timestamp(topic, payload, retained=False, qos=0, allow_queueing=False, timestamp=None)
 
-Publishes `payload` to `topic` including a timestamp. `payload` *must* be a Python `dict` and will be extended by a 
+Publishes `payload` to `topic` including a timestamp. `payload` *must* be a Python `dict` and will be extended by a
 property `_timestamp` set to the provided `timestamp` or - if unset - the current timestamp.
 
 If the `publish.printerData` option is set, then all of the data from `self._printer.get_current_data()` will be

@@ -1,6 +1,6 @@
 #### What were you doing?
 
-<!-- Please be as specific as possible here. 
+<!-- Please be as specific as possible here.
 
 Ideally provide exact steps to follow in order to reproduce your problem: -->
 
@@ -30,7 +30,7 @@ Can be found under Settings > Logs/Logging or in ~/.octoprint/logs/octoprint.log
 #### Link to contents of Javascript console in the browser
 
 <!-- On gist.github.com or pastebin.com or alternatively a screenshot. If applicable -
-always include if unsure or reporting UI issues. 
+always include if unsure or reporting UI issues.
 
 See https://webmasters.stackexchange.com/questions/8525/how-to-open-the-javascript-console-in-different-browsers -->
 
