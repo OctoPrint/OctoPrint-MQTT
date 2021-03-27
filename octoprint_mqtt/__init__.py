@@ -49,6 +49,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 	def __init__(self):
 		self._mqtt = None
 		self._mqtt_connected = False
+		self._mqtt_reset_state = True
 
 		self._mqtt_subscriptions = []
 
@@ -195,7 +196,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			if self._settings.get_boolean(["publish", "printerData"]):
 				data['printer_data'] = self._printer.get_current_data()
 
-			self.mqtt_publish_with_timestamp(topic.format(progress="printing"), data)
+			self.mqtt_publish_with_timestamp(topic.format(progress="printing"), data, retained=True)
 
 	def on_slicing_progress(self, slicer, source_location, source_path, destination_location, destination_path, progress):
 		topic = self._get_topic("progress")
@@ -355,8 +356,8 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
 		return self.mqtt_publish(topic, payload, qos=qos, allow_queueing=allow_queueing)
 
-	def mqtt_publish(self, topic, payload, qos=0, allow_queueing=False):
-		if not isinstance(payload, six.string_types):
+	def mqtt_publish(self, topic, payload, retained=False, qos=0, allow_queueing=False, raw_data=False):
+		if not (isinstance(payload, basestring) or raw_data):
 			payload = json.dumps(payload)
 
 		if not self._mqtt_connected:
@@ -443,6 +444,11 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 			self._logger.debug("Subscribed to topics")
 
 		self._mqtt_connected = True
+
+		if self._mqtt_reset_state:
+			self.on_print_progress("", "", 0)
+			self.on_slicing_progress("", "", "", "", "", 0)
+			self._mqtt_reset_state = False
 
 	def _on_mqtt_disconnect(self, client, userdata, rc):
 		if not client == self._mqtt:
