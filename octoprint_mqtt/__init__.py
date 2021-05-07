@@ -393,7 +393,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
             subbed_topic, subbed_callback, _, _ = entry
             return not (callback == subbed_callback and (topic is None or subbed_topic == topic))
 
-        self._mqtt_subscriptions = filter(remove_sub, self._mqtt_subscriptions)
+        self._mqtt_subscriptions = list(filter(remove_sub, self._mqtt_subscriptions))
 
         if self._mqtt_connected and subbed_topics:
             self._mqtt.unsubscribe(*subbed_topics)
