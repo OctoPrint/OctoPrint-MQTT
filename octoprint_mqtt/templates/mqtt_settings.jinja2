@@ -107,52 +107,51 @@
             <div class="control-group">
                 <div class="controls">
                     <label class="checkbox">
-                        <input type="checkbox" data-bind="checked: showSsl"> {{ _('The broker requires TLS to connect, show SSL/TLS options') }}
+                        <input type="checkbox" data-bind="checked: settings.broker.tls_active"> {{ _('The broker requires TLS to connect (If you change from true to false, you need to restart OctoPrint)') }}
                     </label>
                 </div>
             </div>
-            <div data-bind="visible: showSsl" style="display: none">
-                <div class="control-group">
-                    <label class="control-label">{{ _('Path to server certificate chain') }}</label>
-                    <div class="controls">
-                        <input type="text" class="input-large" id="settings_plugin_mqtt_broker_tls_caCerts" data-bind="value: settings.broker.tls.ca_certs" />
-                        <span class="help-block">{{ _('Path to the server\'s certificate chain file. Mandatory, required for TLS to work.') }}</span>
-                    </div>
-                </div>
 
-                <div class="control-group">
-                    <label class="control-label">{{ _('Path to client certificate') }}</label>
-                    <div class="controls">
-                        <input type="text" class="input-large" id="settings_plugin_mqtt_broker_tls_certfile" data-bind="value: settings.broker.tls.certfile" />
-                        <span class="help-block">{{ _('Paths to the PEM encoded client certificate, <strong>must not be password protected</strong>, only necessary if broker requires client certificate authentication.') }}</span>
-                    </div>
-                </div>
-
-                <div class="control-group">
-                    <label class="control-label">{{ _('Path to client key') }}</label>
-                    <div class="controls">
-                        <input type="text" class="input-large" id="settings_plugin_mqtt_broker_tls_keyfile" data-bind="value: settings.broker.tls.keyfile" />
-                        <span class="help-block">{{ _('Paths to the PEM encoded private keys, <strong>must not be password protected</strong>, only necessary if broker requires client certificate authentication.') }}</span>
-                    </div>
-                </div>
-
-                <div class="advanced-options-container">
-                    <div><small><a href="#" class="muted" data-bind="toggleContent: { class: 'fa-caret-right fa-caret-down', parent: '.advanced-options-container', container: '.hide' }"><i class="fa fa-caret-right"></i> {{ _('Advanced TLS options') }}</a></small></div>
-                    <div class="hide">
-                        <div class="control-group">
-                            <label class="control-label">{{ _('Ciphers') }}</label>
-                            <div class="controls">
-                                <input type="text" class="input-large" id="settings_plugin_mqtt_broker_tls_ciphers" data-bind="value: settings.broker.tls.ciphers" />
-                                <span class="help-block">{{ _('A string specifying which encryption ciphers are allowable for this connection. See <a href="%(url)s" target="_blank">the OpenSSL documentation on ciphers</a>.', url = "https://www.openssl.org/docs/manmaster/man1/ciphers.html") }}</span>
-                            </div>
+            <div class="advanced-options-container">
+                <div><small><a href="#" class="muted" data-bind="toggleContent: { class: 'fa-caret-right fa-caret-down', parent: '.advanced-options-container', container: '.hide' }"><i class="fa fa-caret-right"></i> {{ _('Advanced TLS options') }}</a></small></div>
+                <div class="hide">
+                    <div class="control-group">
+                        <label class="control-label">{{ _('Path to server certificate chain') }}</label>
+                        <div class="controls">
+                            <input type="text" class="input-large" id="settings_plugin_mqtt_broker_tls_caCerts" data-bind="value: settings.broker.tls.ca_certs" />
+                            <span class="help-block">{{ _('Path to the server\'s certificate chain file (optional).') }}</span>
                         </div>
+                    </div>
 
-                        <div class="control-group">
-                            <div class="controls">
-                                <label class="checkbox">
-                                    <input type="checkbox" data-bind="checked: settings.broker.tls_insecure" /> {{ _('Do not verify the server hostname in the server certificate') }} <span class="label label-important">Caution</span>
-                                </label>
-                            </div>
+                    <div class="control-group">
+                        <label class="control-label">{{ _('Path to client certificate') }}</label>
+                        <div class="controls">
+                            <input type="text" class="input-large" id="settings_plugin_mqtt_broker_tls_certfile" data-bind="value: settings.broker.tls.certfile" />
+                            <span class="help-block">{{ _('Paths to the PEM encoded client certificate, <strong>must not be password protected</strong>, only necessary if broker requires client certificate authentication.') }}</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">{{ _('Path to client key') }}</label>
+                        <div class="controls">
+                            <input type="text" class="input-large" id="settings_plugin_mqtt_broker_tls_keyfile" data-bind="value: settings.broker.tls.keyfile" />
+                            <span class="help-block">{{ _('Paths to the PEM encoded private keys, <strong>must not be password protected</strong>, only necessary if broker requires client certificate authentication.') }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label class="control-label">{{ _('Ciphers') }}</label>
+                        <div class="controls">
+                            <input type="text" class="input-large" id="settings_plugin_mqtt_broker_tls_ciphers" data-bind="value: settings.broker.tls.ciphers" />
+                            <span class="help-block">{{ _('A string specifying which encryption ciphers are allowable for this connection. See <a href="%(url)s" target="_blank">the OpenSSL documentation on ciphers</a>.', url = "https://www.openssl.org/docs/manmaster/man1/ciphers.html") }}</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="controls">
+                            <label class="checkbox">
+                                <input type="checkbox" data-bind="checked: settings.broker.tls_insecure" /> {{ _('Do not verify the server hostname in the server certificate') }} <span class="label label-important">Caution</span>
+                            </label>
                         </div>
                     </div>
                 </div>
