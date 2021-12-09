@@ -98,6 +98,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
                 username=None,
                 password=None,
                 keepalive=60,
+                tls_active=False,
                 tls=dict(),
                 tls_insecure=False,
                 protocol="MQTTv31",
@@ -275,6 +276,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
         broker_username = self._settings.get(["broker", "username"])
         broker_password = self._settings.get(["broker", "password"])
         broker_keepalive = self._settings.get_int(["broker", "keepalive"])
+        broker_tls_active = self._settings.get(["broker", "tls_active"])
         broker_tls = self._settings.get(["broker", "tls"], asdict=True)
         broker_tls_insecure = self._settings.get_boolean(["broker", "tls_insecure"])
         broker_protocol = self._settings.get(["broker", "protocol"])
@@ -298,17 +300,15 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
         if self._mqtt is None:
             self._mqtt = mqtt.Client(client_id=client_id, protocol=protocol, clean_session=clean_session)
+        else:
+            self._mqtt.reinitialise() #otherwise tls_set might be called again causing the plugin to crash 
 
         if broker_username is not None:
             self._mqtt.username_pw_set(broker_username, password=broker_password)
 
-        tls_active = False
-        if broker_tls:
+        if broker_tls_active:
             tls_args = dict((key, value) for key, value in broker_tls.items() if value)
-            ca_certs = tls_args.pop("ca_certs", None)
-            if ca_certs:  # cacerts must not be None for tls_set to work
-                self._mqtt.tls_set(ca_certs, **tls_args)
-                tls_active = True
+            self._mqtt.tls_set(**tls_args)
 
         if broker_tls_insecure and tls_active:
             self._mqtt.tls_insecure_set(broker_tls_insecure)
@@ -393,7 +393,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
             subbed_topic, subbed_callback, _, _ = entry
             return not (callback == subbed_callback and (topic is None or subbed_topic == topic))
 
-        self._mqtt_subscriptions = filter(remove_sub, self._mqtt_subscriptions)
+        self._mqtt_subscriptions = list(filter(remove_sub, self._mqtt_subscriptions))
 
         if self._mqtt_connected and subbed_topics:
             self._mqtt.unsubscribe(*subbed_topics)
