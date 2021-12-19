@@ -310,7 +310,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
             tls_args = dict((key, value) for key, value in broker_tls.items() if value)
             self._mqtt.tls_set(**tls_args)
 
-        if broker_tls_insecure and tls_active:
+        if broker_tls_insecure and broker_tls_active:
             self._mqtt.tls_insecure_set(broker_tls_insecure)
 
         _retain = self._settings.get_boolean(["broker", "retain"])
