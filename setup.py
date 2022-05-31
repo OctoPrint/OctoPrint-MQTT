@@ -11,7 +11,7 @@ plugin_package = "octoprint_mqtt"
 plugin_name = "OctoPrint-MQTT"
 
 # The plugin's version. Can be overwritten within OctoPrint's internal data via __plugin_version__ in the plugin module
-plugin_version = "0.8.12"
+plugin_version = "0.8.13"
 
 # The plugin's description. Can be overwritten within OctoPrint's internal data via __plugin_description__ in the plugin
 # module
@@ -30,7 +30,7 @@ plugin_url = "https://github.com/OctoPrint/OctoPrint-MQTT"
 plugin_license = "AGPLv3"
 
 # Any additional requirements besides OctoPrint should be listed here
-plugin_requires = ["OctoPrint>=1.3.5", "paho-mqtt"]
+plugin_requires = ["OctoPrint>=1.3.5", "six", "paho-mqtt"]
 
 ### --------------------------------------------------------------------------------------------------------------------
 ### More advanced options that you usually shouldn't have to touch follow after this point
