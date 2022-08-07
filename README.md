@@ -3,7 +3,7 @@
 This is an OctoPrint Plugin that adds support for [MQTT](http://mqtt.org/) to OctoPrint.
 
 Out of the box OctoPrint will send all [events](http://docs.octoprint.org/en/devel/events/index.html#available-events)
-including their payloads to the topic `octoprint/event/<event>`, where `<event>` will be the name of the event. The message
+including their payloads to the topic `octoPrint/event/<event>`, where `<event>` will be the name of the event. The message
 payload will be a JSON representation of the event's payload, with an additional property `_event` containing the name
 of the event and a property `_timestamp` containing the unix timestamp of when the message was created.
 
@@ -11,12 +11,12 @@ Examples:
 
 | Topic                        | Message                                                          |
 |------------------------------|------------------------------------------------------------------|
-| octoprint/event/ClientOpened | `{"_timestamp": 1517190629, "_event": "ClientOpened", "remoteAddress": "127.0.0.1"}`       |
-| octoprint/event/Connected    | `{"_timestamp": 1517190629, "_event": "Connected", "baudrate": 250000, "port": "VIRTUAL"}` |
-| octoprint/event/PrintStarted | `{"_timestamp": 1517190629, "_event": "PrintStarted", "origin": "local", "file":"/home/pi/.octoprint/uploads/case_bp_3.6.v1.0.gco", "filename": "case_bp_3.6.v1.0.gco"}` |
+| octoPrint/event/ClientOpened | `{"_timestamp": 1517190629, "_event": "ClientOpened", "remoteAddress": "127.0.0.1"}`       |
+| octoPrint/event/Connected    | `{"_timestamp": 1517190629, "_event": "Connected", "baudrate": 250000, "port": "VIRTUAL"}` |
+| octoPrint/event/PrintStarted | `{"_timestamp": 1517190629, "_event": "PrintStarted", "origin": "local", "file":"/home/pi/.octoprint/uploads/case_bp_3.6.v1.0.gco", "filename": "case_bp_3.6.v1.0.gco"}` |
 
-The print progress and the slicing progress will also be send to the topic `octoprint/progress/printing` and
-`octoprint/progress/slicing` respectively. The payload will contain the `progress` as an integer between 0 and 100.
+The print progress and the slicing progress will also be send to the topic `octoPrint/progress/printing` and
+`octoPrint/progress/slicing` respectively. The payload will contain the `progress` as an integer between 0 and 100.
 Print progress will also contain information about the currently printed file (storage `location` and `path` on storage),
 slicing progress will contain information about the currently sliced file (storage `source_location` and `destination_location`,
 `source_path` and `destination_path` on storage, used `slicer`). The payload will also contain a property `_timestamp`
@@ -27,10 +27,10 @@ Examples:
 
 | Topic                        | Message                                                          |
 |------------------------------|------------------------------------------------------------------|
-| octoprint/progress/printing  | `{"_timestamp": 1517190629, "progress": 23, "location": "local", "path": "test.gco"}`      |
-| octoprint/progress/slicing   | `{"_timestamp": 1517190629, "progress": 42, "source_location": "local", "source_path": "test.stl", "destination_location": "local", "destination_path": "test.gcode", "slicer": "cura"}` |
+| octoPrint/progress/printing  | `{"_timestamp": 1517190629, "progress": 23, "location": "local", "path": "test.gco"}`      |
+| octoPrint/progress/slicing   | `{"_timestamp": 1517190629, "progress": 42, "source_location": "local", "source_path": "test.stl", "destination_location": "local", "destination_path": "test.gcode", "slicer": "cura"}` |
 
-The plugin also publishes the temperatures of the tools and the bed to `octoprint/temperature/<tool>` where `<tool>` will either
+The plugin also publishes the temperatures of the tools and the bed to `octoPrint/temperature/<tool>` where `<tool>` will either
 be 'bed' or 'toolX' (X is the number of the tool). The payload will contain the `actual` and the `target` temperature as floating point value plus the current `time` as unix timestamp in seconds.
 New messages will not be published constantly, but only when a value changes. The payload will also contain a property `_timestamp`
 containing the unix timestamp of when the message was created. The published messages will be marked as retained.
@@ -39,17 +39,17 @@ Examples:
 
 | Topic                        | Message                                                          |
 |------------------------------|------------------------------------------------------------------|
-| octoprint/temperature/tool0  | `{"_timestamp": 1517190629, "actual": 65.3, "target": 210.0}`                              |
-| octoprint/temperature/bed    | `{"_timestamp": 1517190629, "actual": 42.1, "target": 65.0}`                               |
+| octoPrint/temperature/tool0  | `{"_timestamp": 1517190629, "actual": 65.3, "target": 210.0}`                              |
+| octoPrint/temperature/bed    | `{"_timestamp": 1517190629, "actual": 42.1, "target": 65.0}`                               |
 
-Additionally the plugin will publish `connected` to `octoprint/mqtt` on connection and instruct the MQTT broker to publish
+Additionally the plugin will publish `connected` to `octoPrint/mqtt` on connection and instruct the MQTT broker to publish
 `disconnected` there if the connection gets closed. The published messages will be marked as retained.
 
 Examples:
 
 | Topic                        | Message              |
 |------------------------------|----------------------|
-| octoprint/mqtt               | `connected`          |
+| octoPrint/mqtt               | `connected`          |
 
 You are able to deactivate topics and the status/last will in the settings. This allows you to e.g. only send temperature messages when you don't
 need event or progress messages.
@@ -62,7 +62,7 @@ Example:
 
 | Topic                        | Message              |
 |------------------------------|----------------------|
-| octoprint/progress/printing  | `{"progress": 0, "_timestamp": 1525654824, "location": "local", "path": "Stringing_Test.gco", "printer_data": {"progress": {"completion": 0.008520926537352922, "printTimeLeftOrigin": "average", "printTime": 0, "printTimeLeft": 273, "filepos": 139}, "state": {"text": "Printing", "flags": {"cancelling": false, "paused": false, "operational": true, "pausing": false, "printing": true, "sdReady": true, "error": false, "ready": false, "closedOrError": false}}, "currentZ": null, "job": {"file": {"origin": "local", "name": "Stringing_Test.gco", "date": 1525586467, "path": "Stringing_Test.gco", "display": "Stringing_Test.gco", "size": 1631278}, "estimatedPrintTime": 1242.9603101308749, "averagePrintTime": 273.6990565955639, "filament": {"tool0": {"volume": 0.0, "length": 363.0717599999999}}, "lastPrintTime": 269.25606203079224}, "offsets": {}}}` |
+| octoPrint/progress/printing  | `{"progress": 0, "_timestamp": 1525654824, "location": "local", "path": "Stringing_Test.gco", "printer_data": {"progress": {"completion": 0.008520926537352922, "printTimeLeftOrigin": "average", "printTime": 0, "printTimeLeft": 273, "filepos": 139}, "state": {"text": "Printing", "flags": {"cancelling": false, "paused": false, "operational": true, "pausing": false, "printing": true, "sdReady": true, "error": false, "ready": false, "closedOrError": false}}, "currentZ": null, "job": {"file": {"origin": "local", "name": "Stringing_Test.gco", "date": 1525586467, "path": "Stringing_Test.gco", "display": "Stringing_Test.gco", "size": 1631278}, "estimatedPrintTime": 1242.9603101308749, "averagePrintTime": 273.6990565955639, "filament": {"tool0": {"volume": 0.0, "length": 363.0717599999999}}, "lastPrintTime": 269.25606203079224}, "offsets": {}}}` |
 
 The plugin also offers several helpers that allow other plugins to both publish as well as subscribe to
 MQTT topics, see below for details and a usage example.
@@ -121,7 +121,7 @@ plugins:
 
         publish:
             # base topic under which to publish OctoPrint's messages
-            #baseTopic: octoprint/
+            #baseTopic: octoPrint/
 
             # include extended printer data in a printer_data attribute, this will
             # greatly increase the size of each message
@@ -224,12 +224,12 @@ class MqttTestPlugin(octoprint.plugin.StartupPlugin):
 			if "mqtt_unsubscribe" in helpers:
 				self.mqtt_unsubscribe = helpers["mqtt_unsubscribe"]
 
-		self.mqtt_publish("octoprint/plugin/mqtt_test/pub", "test plugin startup")
-		self.mqtt_subscribe("octoprint/plugin/mqtt_test/sub", self._on_mqtt_subscription)
+		self.mqtt_publish("octoPrint/plugin/mqtt_test/pub", "test plugin startup")
+		self.mqtt_subscribe("octoPrint/plugin/mqtt_test/sub", self._on_mqtt_subscription)
 
 	def _on_mqtt_subscription(self, topic, message, retained=None, qos=None, *args, **kwargs):
 		self._logger.info("Yay, received a message for {topic}: {message}".format(**locals()))
-		self.mqtt_publish("octoprint/plugin/mqtt_test/pub", "echo: " + message)
+		self.mqtt_publish("octoPrint/plugin/mqtt_test/pub", "echo: " + message)
 
 
 __plugin_implementations__ = [MqttTestPlugin()]
