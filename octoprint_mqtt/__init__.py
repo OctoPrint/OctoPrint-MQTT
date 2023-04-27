@@ -9,7 +9,7 @@ from collections import deque
 import octoprint.plugin
 
 from octoprint.events import Events
-from octoprint.util import dict_minimal_mergediff
+from octoprint.util import dict_minimal_mergediff, RepeatedTimer
 
 
 class MqttPlugin(octoprint.plugin.SettingsPlugin,
@@ -57,6 +57,9 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
         self._mqtt_subscribe_queue = deque()
 
         self.lastTemp = {}
+
+        self.progress_timer = None
+        self.last_progress = {"storage": "", "path": "", "progress": -1}
 
     def initialize(self):
         self._printer.register_callback(self)
@@ -164,14 +167,10 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
     ##~~ EventHandlerPlugin API
 
     def on_event(self, event, payload):
-        if event == Events.PRINT_STARTED:
-            self.on_print_progress(payload["origin"], payload["path"], 0)
-        elif event == Events.PRINT_DONE:
-            self.on_print_progress(payload["origin"], payload["path"], 100)
-        elif event == Events.FILE_SELECTED:
-            self.on_print_progress(payload["origin"], payload["path"], 0)
-        elif event == Events.FILE_DESELECTED:
-            self.on_print_progress("", "", 0)
+        if event in [Events.PRINT_STARTED, Events.PRINT_DONE, Events.FILE_SELECTED, Events.FILE_DESELECTED]:
+            if self.progress_timer is None:
+                self.progress_timer = RepeatedTimer(5, self._update_progress, [payload["origin"], payload["path"]])
+                self.progress_timer.start()
 
         topic = self._get_topic("event")
 
@@ -186,18 +185,34 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
     ##~~ ProgressPlugin API
 
-    def on_print_progress(self, storage, path, progress):
+    def _update_progress(self, storage, path):
         topic = self._get_topic("progress")
 
         if topic:
+            printer_data = self._printer.get_current_data()
+            print_job_progress = printer_data["progress"]
+            progress = 0
+
+            if "completion" in print_job_progress and print_job_progress["completion"] is not None:
+                progress = round(float(print_job_progress["completion"]))
+            if "printTimeLeftOrigin" in print_job_progress and print_job_progress["printTimeLeftOrigin"] == "genius":
+                progress = round(float(print_job_progress["printTime"] or 0) / (float(print_job_progress["printTime"] or 0) + float(print_job_progress["printTimeLeft"])) * 100)
+
+            if print_job_progress.get("completion") in [None, 100]:
+                if self.progress_timer is not None:
+                    self.progress_timer.cancel()
+                    self.progress_timer = None
+
             data = dict(location=storage,
                         path=path,
                         progress=progress)
 
             if self._settings.get_boolean(["publish", "printerData"]):
-                data['printer_data'] = self._printer.get_current_data()
+                data['printer_data'] = printer_data
 
-            self.mqtt_publish_with_timestamp(topic.format(progress="printing"), data, retained=True)
+            if self.last_progress["progress"] != data["progress"] or self.last_progress["path"] != data["path"]:
+                self.mqtt_publish_with_timestamp(topic.format(progress="printing"), data, retained=True)
+                self.last_progress = data
 
     def on_slicing_progress(self, slicer, source_location, source_path, destination_location, destination_path, progress):
         topic = self._get_topic("progress")
@@ -446,7 +461,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
         self._mqtt_connected = True
 
         if self._mqtt_reset_state:
-            self.on_print_progress("", "", 0)
+            self._update_progress("", "")
             self.on_slicing_progress("", "", "", "", "", 0)
             self._mqtt_reset_state = False
 
