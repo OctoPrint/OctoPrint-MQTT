@@ -492,7 +492,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
         return self._settings.get_boolean(["publish", "events", "unclassified"])
 
     def on_gcode_received(self, comm, line, *args, **kwargs):
-        if line == "echo:busy: paused for user":
+        if line.startswith('echo:busy: paused for user'):
             topic = self._get_topic("event")
             event = 'PausedForUser'
             payload = dict()
