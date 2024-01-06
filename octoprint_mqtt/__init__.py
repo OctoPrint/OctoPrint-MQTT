@@ -32,10 +32,10 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
                                                  Events.TRANSFER_FAILED, Events.TRANSFER_DONE),
                                      printjob = (Events.PRINT_STARTED, Events.PRINT_FAILED, Events.PRINT_DONE,
                                                  Events.PRINT_CANCELLED, Events.PRINT_PAUSED, Events.PRINT_RESUMED),
-                                     gcode    = (Events.POWER_ON, Events.POWER_OFF, Events.HOME, Events.Z_CHANGE,
-                                                 Events.DWELL, Events.WAITING, Events.COOLING, Events.ALERT,
-                                                 Events.CONVEYOR, Events.EJECT, Events.E_STOP, Events.POSITION_UPDATE,
-                                                 Events.TOOL_CHANGE),
+                                     gcode    = (Events.POWER_ON, Events.POWER_OFF, Events.HOME, Events.DWELL,
+                                                 Events.WAITING, Events.COOLING, Events.ALERT, Events.CONVEYOR,
+                                                 Events.EJECT, Events.E_STOP, Events.POSITION_UPDATE, Events.TOOL_CHANGE),
+                                     zchange  = (Events.Z_CHANGE),
                                      timelapse= (Events.CAPTURE_START, Events.CAPTURE_FAILED, Events.CAPTURE_DONE,
                                                  Events.MOVIE_RENDERING, Events.MOVIE_FAILED, Events.MOVIE_FAILED),
                                      slicing  = (Events.SLICING_STARTED, Events.SLICING_DONE, Events.SLICING_CANCELLED,
@@ -115,6 +115,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
                             files=True,
                             printjob=True,
                             gcode=True,
+                            zchange=True,
                             timelapse=True,
                             slicing=True,
                             settings=True,
@@ -301,7 +302,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
         if self._mqtt is None:
             self._mqtt = mqtt.Client(client_id=client_id, protocol=protocol, clean_session=clean_session)
         else:
-            self._mqtt.reinitialise() #otherwise tls_set might be called again causing the plugin to crash 
+            self._mqtt.reinitialise() #otherwise tls_set might be called again causing the plugin to crash
 
         if broker_username is not None:
             self._mqtt.username_pw_set(broker_username, password=broker_password)
