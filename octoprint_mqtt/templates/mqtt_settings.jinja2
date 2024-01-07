@@ -305,6 +305,13 @@
                 </div>
             </div>
             <div class="control-group">
+                <div class="controls">
+                    <label class="checkbox">
+                        <input type="checkbox" data-bind="checked: settings.broker.lwRetain" /> {{ _('Retain Last Will & Status publication') }}
+                    </label>
+                </div>
+            </div>
+            <div class="control-group">
                 <label class="control-label">{{ _('Topic') }}</label>
                 <div class="controls">
                     <div class="input-prepend">
