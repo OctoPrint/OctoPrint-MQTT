@@ -491,6 +491,15 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
                 return self._settings.get_boolean(["publish", "events", event_class])
         return self._settings.get_boolean(["publish", "events", "unclassified"])
 
+    def on_gcode_received(self, comm, line, *args, **kwargs):
+        if line.startswith('echo:busy: paused for user'):
+            topic = self._get_topic("event")
+            event = 'PausedForUser'
+            payload = dict()
+            payload["_event"] = event
+            self.mqtt_publish_with_timestamp(topic.format(event=event), payload)
+        return line
+
 
 __plugin_name__ = "MQTT"
 __plugin_pythoncompat__ = ">=2.7,<4"
@@ -511,5 +520,6 @@ def __plugin_load__():
 
     global __plugin_hooks__
     __plugin_hooks__ = {
-        "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information
+        "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information,
+        "octoprint.comm.protocol.gcode.received": __plugin_implementation__.on_gcode_received,
     }
