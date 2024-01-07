@@ -138,7 +138,7 @@
                             <span class="help-block">{{ _('Paths to the PEM encoded private keys, <strong>must not be password protected</strong>, only necessary if broker requires client certificate authentication.') }}</span>
                         </div>
                     </div>
-                    
+
                     <div class="control-group">
                         <label class="control-label">{{ _('Ciphers') }}</label>
                         <div class="controls">
@@ -217,6 +217,10 @@
                         <div class="controls">
                                 <label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.events.gcode" /> {{ _('GCode processing events') }} </label>
                                 <span class="help-block">{{ _('Events triggered due to GCODE commands like M80 (Power On), M81 (Power Off), ...') }}</span>
+                        </div>
+                        <div class="controls">
+                                <label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.events.position" /> {{ _('Position events') }} </label>
+                                <span class="help-block">{{ _('Position events like ZChange and PositionUpdate') }}</span>
                         </div>
                         <div class="controls">
                                 <label class="checkbox"><input type="checkbox" data-bind="checked:  settings.publish.events.timelapse" /> {{ _('Timelapse events') }} </label>
@@ -326,4 +330,3 @@
 </form>
 
 <p class="muted"><small>{{ _('If you need help on setting up this plugin, please have a look at <a href="%(url)s" target="_blank">the documentation on Github</a>.', url = "https://github.com/OctoPrint/OctoPrint-MQTT/blob/master/README.md") }}</small></p>
-
