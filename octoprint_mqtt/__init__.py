@@ -169,7 +169,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
     ##~~ EventHandlerPlugin API
 
     def on_event(self, event, payload):
-        if event in [Events.PRINT_STARTED, Events.PRINT_DONE, Events.FILE_SELECTED, Events.FILE_DESELECTED]:
+        if event in [Events.PRINT_STARTED, Events.PRINT_DONE, Events.FILE_SELECTED]:
             if self.progress_timer is None:
                 self.progress_timer = RepeatedTimer(5, self._update_progress, [payload["origin"], payload["path"]])
                 self.progress_timer.start()
