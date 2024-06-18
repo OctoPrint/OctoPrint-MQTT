@@ -2,6 +2,8 @@
 
 This is an OctoPrint Plugin that adds support for [MQTT](http://mqtt.org/) to OctoPrint.
 
+### Events
+
 Out of the box OctoPrint will send all [events](http://docs.octoprint.org/en/devel/events/index.html#available-events)
 including their payloads to the topic `octoprint/event/<event>`, where `<event>` will be the name of the event. The message
 payload will be a JSON representation of the event's payload, with an additional property `_event` containing the name
@@ -14,6 +16,8 @@ Examples:
 | octoprint/event/ClientOpened | `{"_timestamp": 1517190629, "_event": "ClientOpened", "remoteAddress": "127.0.0.1"}`       |
 | octoprint/event/Connected    | `{"_timestamp": 1517190629, "_event": "Connected", "baudrate": 250000, "port": "VIRTUAL"}` |
 | octoprint/event/PrintStarted | `{"_timestamp": 1517190629, "_event": "PrintStarted", "origin": "local", "file":"/home/pi/.octoprint/uploads/case_bp_3.6.v1.0.gco", "filename": "case_bp_3.6.v1.0.gco"}` |
+
+### Print and slicing progress
 
 The print progress and the slicing progress will also be send to the topic `octoprint/progress/printing` and
 `octoprint/progress/slicing` respectively. The payload will contain the `progress` as an integer between 0 and 100.
@@ -30,6 +34,8 @@ Examples:
 | octoprint/progress/printing  | `{"_timestamp": 1517190629, "progress": 23, "location": "local", "path": "test.gco"}`      |
 | octoprint/progress/slicing   | `{"_timestamp": 1517190629, "progress": 42, "source_location": "local", "source_path": "test.stl", "destination_location": "local", "destination_path": "test.gcode", "slicer": "cura"}` |
 
+### Temperatures
+
 The plugin also publishes the temperatures of the tools and the bed to `octoprint/temperature/<tool>` where `<tool>` will either
 be 'bed' or 'toolX' (X is the number of the tool). The payload will contain the `actual` and the `target` temperature as floating point value plus the current `time` as unix timestamp in seconds.
 New messages will not be published constantly, but only when a value changes. The payload will also contain a property `_timestamp`
@@ -42,6 +48,23 @@ Examples:
 | octoprint/temperature/tool0  | `{"_timestamp": 1517190629, "actual": 65.3, "target": 210.0}`                              |
 | octoprint/temperature/bed    | `{"_timestamp": 1517190629, "actual": 42.1, "target": 65.0}`                               |
 
+### Additional Metadata
+
+You can also define keys from the print file's additional metadata to publish on print start. This is especially useful together with plugins like [OctoPrint-SlicerSettingsParser](https://plugins.octoprint.org/plugins/SlicerSettingsParser/).
+You can enter a comma separted list of keys in the plugin settings. The plugin will then publish the values of these keys to the topic `octoprint/metadata/<key>`.
+Collections (dictionaries, lists) will be json encoded. To get specific values from a dictionary, you can use a dot notation (e.g. `dict.key.subkey`).
+
+Examples:
+
+| Topic                                            | Message                                                                              |
+|--------------------------------------------------|--------------------------------------------------------------------------------------|
+| octoprint/metadata/layer_height                  | `0.2`                                                                                |
+| octoprint/metadata/slicer_settings               | `{"material_type": "PLA", "layer_height": "0.2", "filament_amount": "[48.92]", ...}` |
+| octoprint/metadata/slicer_settings.material_type | `PLA`                                                                                |
+
+
+### Connection status / Last will
+
 Additionally the plugin will publish `connected` to `octoprint/mqtt` on connection and instruct the MQTT broker to publish
 `disconnected` there if the connection gets closed. The published messages will be marked as retained.
 
@@ -53,6 +76,8 @@ Examples:
 
 You are able to deactivate topics and the status/last will in the settings. This allows you to e.g. only send temperature messages when you don't
 need event or progress messages.
+
+### Printer data
 
 If the Printer Data option is set, then extended printer information as outlined in the
 [Common data model](http://docs.octoprint.org/en/master/api/datamodel.html) will be included in a `printer_data` attribute.
@@ -147,6 +172,16 @@ plugins:
 
             # should temperatures be published?
             #temperatureActive: true
+
+            # topic for additional metadata, appended to the base topic,
+            # '{key}' will be substituted with the key from the additional metadata
+            #metadataTopic: metadata/{key}
+
+            # should additional metadata be published?
+            #metadataActive: false
+
+            # keys from the additional metadata to publish, comma separated string
+            #metadataKeys: "slicer_settings.material_type"
 
             # should mqtt connection status / last will be published?
             #lwActive: true

@@ -138,7 +138,7 @@
                             <span class="help-block">{{ _('Paths to the PEM encoded private keys, <strong>must not be password protected</strong>, only necessary if broker requires client certificate authentication.') }}</span>
                         </div>
                     </div>
-                    
+
                     <div class="control-group">
                         <label class="control-label">{{ _('Ciphers') }}</label>
                         <div class="controls">
@@ -294,6 +294,37 @@
                     </div>
                 </div>
             </fieldset>
+
+            <fieldset>
+                <legend>{{ _('Additional Metadata') }}</legend>
+                <div class="control-group">
+                    <div class="controls">
+                        <label class="checkbox">
+                            <input type="checkbox" data-bind="checked:  settings.publish.metadataActive" /> {{ _('Activate additional metadata messages') }}
+                        </label>
+                        <span class="help-block">{{ _('Enable this option to publish additional metadata on print start. This feature is useful when using plugins like OctoPrint-SlicerSettingsParser.') }}</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">{{ _('Topic') }}</label>
+                    <div class="controls">
+                        <div class="input-prepend">
+                            <span class="add-on" data-bind="text: settings.publish.baseTopic"></span>
+                            <input type="text" class="input-large" id="settings_plugin_mqtt_publish_metadataTopic" data-bind="value: settings.publish.metadataTopic" />
+                        </div>
+                        <span class="help-block">{{ _('Topic for additional metadata, appended to the base topic, <code>{key}</code> will be substituted with the the key name.') }}</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">{{ _('Keys') }}</label>
+                    <div class="controls">
+                        <input type="text" class="input-large" id="settings_plugin_mqtt_publish_metadataKeys" data-bind="value: settings.publish.metadataKeys" />
+                        <span class="help-block">{{ _('Enter a comma-separated list of keys for the additional metadata to publish.') }}</span>
+                        <span class="help-block">{{ _('To publish specific pieces of data nested in dictionaries, use dot notation. For example: <code>slicer_settings.material_type</code>.') }}</span>
+                        <span class="help-block">{{ _('Dot notation can be used recursively to access deeper levels. For example: <code>slicer_settings.material_settings.density</code>.') }}</span>
+                    </div>
+                </div>
+            </fieldset>
         </div>
         <div id="settings_plugin_mqtt_lastwill" class="tab-pane">
             <span class="help-block">{{ _('Enable this to get a <code>connected</code> message published to the topic on connect of the client, and a <code>disconnected</code> message on disconnect (via the broker\'s last will mechanism). See <a href="%(url)s" target="_blank", rel="noopener noreferrer">here</a> for more information on the Last Will concept in MQTT.', url="https://www.hivemq.com/blog/mqtt-essentials-part-9-last-will-and-testament") }}</span>
@@ -319,4 +350,3 @@
 </form>
 
 <p class="muted"><small>{{ _('If you need help on setting up this plugin, please have a look at <a href="%(url)s" target="_blank">the documentation on Github</a>.', url = "https://github.com/OctoPrint/OctoPrint-MQTT/blob/master/README.md") }}</small></p>
-
