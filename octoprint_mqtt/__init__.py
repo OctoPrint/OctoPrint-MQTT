@@ -9,7 +9,7 @@ from collections import deque
 import octoprint.plugin
 
 from octoprint.events import Events
-from octoprint.util import dict_minimal_mergediff
+from octoprint.util import dict_minimal_mergediff, RepeatedTimer
 
 
 class MqttPlugin(octoprint.plugin.SettingsPlugin,
@@ -32,10 +32,10 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
                                                  Events.TRANSFER_FAILED, Events.TRANSFER_DONE),
                                      printjob = (Events.PRINT_STARTED, Events.PRINT_FAILED, Events.PRINT_DONE,
                                                  Events.PRINT_CANCELLED, Events.PRINT_PAUSED, Events.PRINT_RESUMED),
-                                     gcode    = (Events.POWER_ON, Events.POWER_OFF, Events.HOME, Events.Z_CHANGE,
-                                                 Events.DWELL, Events.WAITING, Events.COOLING, Events.ALERT,
-                                                 Events.CONVEYOR, Events.EJECT, Events.E_STOP, Events.POSITION_UPDATE,
-                                                 Events.TOOL_CHANGE),
+                                     gcode    = (Events.POWER_ON, Events.POWER_OFF, Events.HOME, Events.DWELL,
+                                                 Events.WAITING, Events.COOLING, Events.ALERT, Events.CONVEYOR,
+                                                 Events.EJECT, Events.E_STOP, Events.TOOL_CHANGE),
+                                     position = (Events.Z_CHANGE, Events.POSITION_UPDATE),
                                      timelapse= (Events.CAPTURE_START, Events.CAPTURE_FAILED, Events.CAPTURE_DONE,
                                                  Events.MOVIE_RENDERING, Events.MOVIE_FAILED, Events.MOVIE_FAILED),
                                      slicing  = (Events.SLICING_STARTED, Events.SLICING_DONE, Events.SLICING_CANCELLED,
@@ -57,6 +57,9 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
         self._mqtt_subscribe_queue = deque()
 
         self.lastTemp = {}
+
+        self.progress_timer = None
+        self.last_progress = {"storage": "", "path": "", "progress": -1}
 
     def initialize(self):
         self._printer.register_callback(self)
@@ -103,6 +106,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
                 tls_insecure=False,
                 protocol="MQTTv31",
                 retain=True,
+                lwRetain=True,
                 clean_session=True
             ),
             publish=dict(
@@ -115,6 +119,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
                             files=True,
                             printjob=True,
                             gcode=True,
+                            position=True,
                             timelapse=True,
                             slicing=True,
                             settings=True,
@@ -168,14 +173,10 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
     ##~~ EventHandlerPlugin API
 
     def on_event(self, event, payload):
-        if event == Events.PRINT_STARTED:
-            self.on_print_progress(payload["origin"], payload["path"], 0)
-        elif event == Events.PRINT_DONE:
-            self.on_print_progress(payload["origin"], payload["path"], 100)
-        elif event == Events.FILE_SELECTED:
-            self.on_print_progress(payload["origin"], payload["path"], 0)
-        elif event == Events.FILE_DESELECTED:
-            self.on_print_progress("", "", 0)
+        if event in [Events.PRINT_STARTED, Events.PRINT_DONE, Events.FILE_SELECTED, Events.FILE_DESELECTED]:
+            if self.progress_timer is None:
+                self.progress_timer = RepeatedTimer(5, self._update_progress, [payload["origin"], payload["path"]])
+                self.progress_timer.start()
 
 
         if event in [Events.PRINT_STARTED, Events.PRINT_DONE, Events.PRINT_FAILED, Events.PRINT_CANCELLED]:
@@ -190,22 +191,43 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
                 else:
                     data = dict(payload)
                 data["_event"] = event
-                self.mqtt_publish_with_timestamp(topic.format(event=event), data)
+
+                _retained = self._settings.get_boolean(["broker", "retain"])
+                if not _retained or event not in ["ZChange", "FirmwareData"]:
+                    _retained = False
+
+                self.mqtt_publish_with_timestamp(topic.format(event=event), data, retained=_retained)
 
     ##~~ ProgressPlugin API
 
-    def on_print_progress(self, storage, path, progress):
+    def _update_progress(self, storage, path):
         topic = self._get_topic("progress")
 
         if topic:
+            printer_data = self._printer.get_current_data()
+            print_job_progress = printer_data["progress"]
+            progress = 0
+
+            if "completion" in print_job_progress and print_job_progress["completion"] is not None:
+                progress = round(float(print_job_progress["completion"]))
+            if "printTimeLeftOrigin" in print_job_progress and print_job_progress["printTimeLeftOrigin"] == "genius":
+                progress = round(float(print_job_progress["printTime"] or 0) / (float(print_job_progress["printTime"] or 0) + float(print_job_progress["printTimeLeft"])) * 100)
+
+            if print_job_progress.get("completion") in [None, 100]:
+                if self.progress_timer is not None:
+                    self.progress_timer.cancel()
+                    self.progress_timer = None
+
             data = dict(location=storage,
                         path=path,
                         progress=progress)
 
             if self._settings.get_boolean(["publish", "printerData"]):
-                data['printer_data'] = self._printer.get_current_data()
+                data['printer_data'] = printer_data
 
-            self.mqtt_publish_with_timestamp(topic.format(progress="printing"), data, retained=True)
+            if self.last_progress["progress"] != data["progress"] or self.last_progress["path"] != data["path"]:
+                self.mqtt_publish_with_timestamp(topic.format(progress="printing"), data, retained=True)
+                self.last_progress = data
 
     def on_slicing_progress(self, slicer, source_location, source_path, destination_location, destination_path, progress):
         topic = self._get_topic("progress")
@@ -343,6 +365,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
         clean_session = self._settings.get_boolean(["broker", "clean_session"])
 
         lw_active = self._settings.get_boolean(["publish", "lwActive"])
+        lw_retain = self._settings.get_boolean(["broker", "lwRetain"])
         lw_topic = self._get_topic("lw")
 
         if broker_url is None:
@@ -372,9 +395,8 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
         if broker_tls_insecure and broker_tls_active:
             self._mqtt.tls_insecure_set(broker_tls_insecure)
 
-        _retain = self._settings.get_boolean(["broker", "retain"])
         if lw_active and lw_topic:
-            self._mqtt.will_set(lw_topic, self.LWT_DISCONNECTED, qos=1, retain=_retain)
+            self._mqtt.will_set(lw_topic, self.LWT_DISCONNECTED, qos=1, retain=lw_retain)
 
         self._mqtt.on_connect = self._on_mqtt_connect
         self._mqtt.on_disconnect = self._on_mqtt_disconnect
@@ -392,7 +414,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
             if lwt is None:
                 lwt = self._get_topic("lw")
             if lwt:
-                _retain = self._settings.get_boolean(["broker", "retain"])
+                _retain = self._settings.get_boolean(["broker", "lwRetain"])
                 self._mqtt.publish(lwt, self.LWT_DISCONNECTED, qos=1, retain=_retain)
 
         self._mqtt.loop_stop()
@@ -401,7 +423,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
             time.sleep(1)
             self._mqtt.loop_stop(force=True)
 
-    def mqtt_publish_with_timestamp(self, topic, payload, retained=False, qos=0, allow_queueing=False, timestamp=None):
+    def mqtt_publish_with_timestamp(self, topic, payload, retained=None, qos=0, allow_queueing=False, timestamp=None):
         if not payload:
             payload = dict()
         if not isinstance(payload, dict):
@@ -413,9 +435,12 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
         timestamp_fieldname = self._settings.get(["timestamp_fieldname"])
         payload[timestamp_fieldname] = int(timestamp)
 
+        if retained is None:
+            retained = self._settings.get_boolean(["broker", "retain"])
+
         return self.mqtt_publish(topic, payload, retained=retained, qos=qos, allow_queueing=allow_queueing)
 
-    def mqtt_publish(self, topic, payload, retained=False, qos=0, allow_queueing=False, raw_data=False):
+    def mqtt_publish(self, topic, payload, retained=None, qos=0, allow_queueing=False, raw_data=False):
         if not (isinstance(payload, six.string_types) or raw_data):
             payload = json.dumps(payload)
 
@@ -427,7 +452,10 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
             else:
                 return False
 
-        _retain = self._settings.get_boolean(["broker", "retain"])
+        _retain = retained
+        if retained is None:
+            _retain = self._settings.get_boolean(["broker", "retain"])
+
         self._mqtt.publish(topic, payload=payload, retain=_retain, qos=qos)
         self._logger.debug("Sent message: {topic} - {payload}, retain={_retain}".format(**locals()))
         return True
@@ -484,10 +512,11 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
         self._logger.info("Connected to mqtt broker")
         lw_active = self._settings.get_boolean(["publish", "lwActive"])
         lw_topic = self._get_topic("lw")
-        _retain = self._settings.get_boolean(["broker", "retain"])
+        lw_retain = self._settings.get_boolean(["broker", "lwRetain"])
         if lw_active and lw_topic:
-            self._mqtt.publish(lw_topic, self.LWT_CONNECTED, qos=1, retain=_retain)
+            self._mqtt.publish(lw_topic, self.LWT_CONNECTED, qos=1, retain=lw_retain)
 
+        _retain = self._settings.get_boolean(["broker", "retain"])
         if self._mqtt_publish_queue:
             try:
                 while True:
@@ -505,7 +534,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
         self._mqtt_connected = True
 
         if self._mqtt_reset_state:
-            self.on_print_progress("", "", 0)
+            self._update_progress("", "")
             self.on_slicing_progress("", "", "", "", "", 0)
             self._mqtt_reset_state = False
 
@@ -550,6 +579,15 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
                 return self._settings.get_boolean(["publish", "events", event_class])
         return self._settings.get_boolean(["publish", "events", "unclassified"])
 
+    def on_gcode_received(self, comm, line, *args, **kwargs):
+        if line.startswith('echo:busy: paused for user'):
+            topic = self._get_topic("event")
+            event = 'PausedForUser'
+            payload = dict()
+            payload["_event"] = event
+            self.mqtt_publish_with_timestamp(topic.format(event=event), payload)
+        return line
+
 
 __plugin_name__ = "MQTT"
 __plugin_pythoncompat__ = ">=2.7,<4"
@@ -570,5 +608,6 @@ def __plugin_load__():
 
     global __plugin_hooks__
     __plugin_hooks__ = {
-        "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information
+        "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information,
+        "octoprint.comm.protocol.gcode.received": __plugin_implementation__.on_gcode_received,
     }
