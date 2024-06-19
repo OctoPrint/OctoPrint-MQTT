@@ -132,6 +132,10 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
                 temperatureActive=True,
                 temperatureThreshold=0.1,
 
+                metadataTopic="metadata/{key}",
+                metadataActive=False,
+                metadataKeys="",
+
                 lwTopic="mqtt",
                 lwActive=True
             ),
@@ -173,6 +177,10 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
             if self.progress_timer is None:
                 self.progress_timer = RepeatedTimer(5, self._update_progress, [payload["origin"], payload["path"]])
                 self.progress_timer.start()
+
+
+        if event in [Events.PRINT_STARTED, Events.PRINT_DONE, Events.PRINT_FAILED, Events.PRINT_CANCELLED]:
+            self.on_additional_metadata(payload["origin"], payload["path"], event)
 
         topic = self._get_topic("event")
 
@@ -232,6 +240,57 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
                         destination_path=destination_path,
                         progress=progress)
             self.mqtt_publish_with_timestamp(topic.format(progress="slicing"), data)
+
+    ##~~ Additional Metadata
+
+    def on_additional_metadata(self, origin, path, event):
+        if not self._settings.get_boolean(["publish", "metadataActive"]):
+            return
+
+        keys = list(set([key.strip() for key in self._settings.get(["publish", "metadataKeys"]).split(",") if key.strip() != ""]))
+
+        if not keys:
+            self._logger.warn("No metadata keys defined, can't publish metadata")
+            return
+
+        topic = self._get_topic("metadata")
+
+        if not topic:
+            self._logger.warn("No metadata topic defined, can't publish metadata")
+            return
+
+        if event == Events.PRINT_STARTED:
+            storage = self._file_manager._storage(origin)
+            file = storage.path_on_disk(path)
+
+            def _get_nested_value(data, key):
+                first, _, rest = key.partition(".")
+                value = data.get(first)
+
+                if rest:
+                    return _get_nested_value(value, rest) if isinstance(value, dict) else None
+                else:
+                    return value
+
+            for key in keys:
+                if "." not in key:
+                    value = storage.get_additional_metadata(file, key)
+                else:
+                    first, _, rest = key.partition(".")
+                    data = storage.get_additional_metadata(file, first)
+                    value = _get_nested_value(data, rest) if isinstance(data, dict) else None
+
+                if isinstance(value, (dict, list)):
+                    value = json.dumps(value)
+
+                if not isinstance(value, (six.string_types, six.integer_types, float, bytearray, type(None))):
+                    self._logger.warn("Metadata key {key} is not a simple type, can't publish".format(key=key))
+                    continue
+
+                self.mqtt_publish(topic.format(key=key), value, raw_data=True)
+        elif event in [Events.PRINT_DONE, Events.PRINT_FAILED, Events.PRINT_CANCELLED]:
+            for key in keys:
+                self.mqtt_publish(topic.format(key=key), None, raw_data=True)
 
     ##~~ PrinterCallback
 
