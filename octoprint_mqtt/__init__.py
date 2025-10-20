@@ -7,6 +7,7 @@ import time
 from collections import deque
 
 import octoprint.plugin
+import flask
 
 from octoprint.events import Events
 from octoprint.util import dict_minimal_mergediff, RepeatedTimer
@@ -19,6 +20,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
                  octoprint.plugin.ProgressPlugin,
                  octoprint.plugin.TemplatePlugin,
                  octoprint.plugin.AssetPlugin,
+                 octoprint.plugin.SimpleApiPlugin,
                  octoprint.printer.PrinterCallback):
 
     EVENT_CLASS_TO_EVENT_LIST = dict(server   = (Events.STARTUP, Events.SHUTDOWN, Events.CLIENT_OPENED,
@@ -349,6 +351,51 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
             )
         )
 
+    ##~~ SimpleApiPlugin API
+
+    def get_api_commands(self):
+        return dict(
+            connect=[],
+            disconnect=[]
+        )
+
+    def is_api_adminonly(self):
+        return True
+
+    def is_api_protected(self):
+        return True
+
+    def on_api_command(self, command, data):
+        if command == "connect":
+            self._logger.info("Connect command received, connecting to MQTT broker")
+            self.mqtt_connect()
+
+            # Wait for async connection to establish (up to 3 seconds)
+            for i in range(30):
+                if self._mqtt_connected:
+                    break
+                time.sleep(0.1)
+
+            return flask.jsonify(dict(success=True, connected=self._mqtt_connected))
+
+        elif command == "disconnect":
+            self._logger.info("Disconnect command received, disconnecting from MQTT broker")
+            self.mqtt_disconnect(force=True)
+            return flask.jsonify(dict(success=True, connected=self._mqtt_connected))
+
+    def on_api_get(self, request):
+        # Verify actual connection status with the MQTT client
+        actual_connected = False
+        if self._mqtt is not None:
+            actual_connected = self._mqtt.is_connected()
+            # Sync our flag with actual status
+            if actual_connected != self._mqtt_connected:
+                self._logger.debug("Connection status out of sync, updating from {} to {}".format(
+                    self._mqtt_connected, actual_connected))
+                self._mqtt_connected = actual_connected
+
+        return flask.jsonify(dict(connected=actual_connected))
+
     ##~~ helpers
 
     def mqtt_connect(self):
@@ -410,12 +457,17 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
         if self._mqtt is None:
             return
 
-        if incl_lwt:
+        # Publish Last Will Testament if requested and connected
+        if incl_lwt and self._mqtt.is_connected():
             if lwt is None:
                 lwt = self._get_topic("lw")
             if lwt:
                 _retain = self._settings.get_boolean(["broker", "lwRetain"])
                 self._mqtt.publish(lwt, self.LWT_DISCONNECTED, qos=1, retain=_retain)
+
+        # Actually disconnect from the broker if connected
+        if self._mqtt.is_connected():
+            self._mqtt.disconnect()
 
         self._mqtt.loop_stop()
 
@@ -510,33 +562,42 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
             return
 
         self._logger.info("Connected to mqtt broker")
-        lw_active = self._settings.get_boolean(["publish", "lwActive"])
-        lw_topic = self._get_topic("lw")
-        lw_retain = self._settings.get_boolean(["broker", "lwRetain"])
-        if lw_active and lw_topic:
-            self._mqtt.publish(lw_topic, self.LWT_CONNECTED, qos=1, retain=lw_retain)
 
-        _retain = self._settings.get_boolean(["broker", "retain"])
-        if self._mqtt_publish_queue:
-            try:
-                while True:
-                    topic, payload, qos = self._mqtt_publish_queue.popleft()
-                    self._mqtt.publish(topic, payload=payload, retain=_retain, qos=qos)
-            except IndexError:
-                # that's ok, queue is just empty
-                pass
+        try:
+            lw_active = self._settings.get_boolean(["publish", "lwActive"])
+            lw_topic = self._get_topic("lw")
+            lw_retain = self._settings.get_boolean(["broker", "lwRetain"])
+            if lw_active and lw_topic:
+                self._mqtt.publish(lw_topic, self.LWT_CONNECTED, qos=1, retain=lw_retain)
 
-        subbed_topics = list(map(lambda t: (t, 0), {topic for topic, _, _, _ in self._mqtt_subscriptions}))
-        if subbed_topics:
-            self._mqtt.subscribe(subbed_topics)
-            self._logger.debug("Subscribed to topics")
+            _retain = self._settings.get_boolean(["broker", "retain"])
+            if self._mqtt_publish_queue:
+                try:
+                    while True:
+                        topic, payload, qos = self._mqtt_publish_queue.popleft()
+                        self._mqtt.publish(topic, payload=payload, retain=_retain, qos=qos)
+                except IndexError:
+                    # that's ok, queue is just empty
+                    pass
 
-        self._mqtt_connected = True
+            # Filter out invalid topics (None, empty string)
+            valid_topics = {topic for topic, _, _, _ in self._mqtt_subscriptions if topic}
+            subbed_topics = list(map(lambda t: (t, 0), valid_topics))
+            if subbed_topics:
+                self._mqtt.subscribe(subbed_topics)
+                self._logger.debug("Subscribed to topics")
 
-        if self._mqtt_reset_state:
-            self._update_progress("", "")
-            self.on_slicing_progress("", "", "", "", "", 0)
-            self._mqtt_reset_state = False
+            self._mqtt_connected = True
+
+            # Notify frontend of connection status change
+            self._plugin_manager.send_plugin_message(self._identifier, {"connected": True})
+
+            if self._mqtt_reset_state:
+                self._update_progress("", "")
+                self.on_slicing_progress("", "", "", "", "", 0)
+                self._mqtt_reset_state = False
+        except Exception as e:
+            self._logger.error("Exception in _on_mqtt_connect: {}".format(e), exc_info=True)
 
     def _on_mqtt_disconnect(self, client, userdata, rc):
         if not client == self._mqtt:
@@ -548,6 +609,12 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
             self._logger.info("Disconnected from mqtt broker")
 
         self._mqtt_connected = False
+
+        # Notify frontend of connection status change
+        try:
+            self._plugin_manager.send_plugin_message(self._identifier, {"connected": False})
+        except Exception as e:
+            self._logger.error("Exception while sending disconnect message to frontend: {}".format(e), exc_info=True)
 
     def _on_mqtt_message(self, client, userdata, msg):
         if not client == self._mqtt:
