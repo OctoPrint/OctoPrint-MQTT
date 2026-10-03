@@ -421,7 +421,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
         if force:
             time.sleep(1)
-            self._mqtt.loop_stop(force=True)
+            self._mqtt.loop_stop()
 
     def mqtt_publish_with_timestamp(self, topic, payload, retained=None, qos=0, allow_queueing=False, timestamp=None):
         if not payload:
