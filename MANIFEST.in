@@ -1,0 +1,4 @@
+include README.md
+recursive-include octoprint_mqtt/templates *
+recursive-include octoprint_mqtt/translations *
+recursive-include octoprint_mqtt/static *
