@@ -155,6 +155,8 @@ $(function() {
                         text: "Failed to disconnect from MQTT broker. Check logs for details.",
                         type: "error"
                     });
+                    // the real state is unknown after a failure, so ask the backend
+                    self.checkConnectionStatus();
                 },
                 complete: function() {
                     self.isDisconnecting(false);
