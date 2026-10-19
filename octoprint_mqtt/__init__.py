@@ -427,10 +427,14 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
         else:
             protocol = mqtt.MQTTv31
 
-        if self._mqtt is None:
-            self._mqtt = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, client_id=client_id, protocol=protocol, clean_session=clean_session)
-        else:
-            self._mqtt.reinitialise() #otherwise tls_set might be called again causing the plugin to crash
+        if self._mqtt is not None:
+            # Client.reinitialise() is broken in paho-mqtt 2.x (it doesn't pass callback_api_version), so
+            # always start from a fresh client. This also avoids tls_set being called twice on the same client.
+            if self._mqtt.is_connected():
+                self._mqtt.disconnect()
+            self._mqtt.loop_stop()
+
+        self._mqtt = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, client_id=client_id, protocol=protocol, clean_session=clean_session)
 
         if broker_username is not None:
             self._mqtt.username_pw_set(broker_username, password=broker_password)
