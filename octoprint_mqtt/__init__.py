@@ -428,7 +428,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
             protocol = mqtt.MQTTv31
 
         if self._mqtt is None:
-            self._mqtt = mqtt.Client(client_id=client_id, protocol=protocol, clean_session=clean_session)
+            self._mqtt = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, client_id=client_id, protocol=protocol, clean_session=clean_session)
         else:
             self._mqtt.reinitialise() #otherwise tls_set might be called again causing the plugin to crash
 
@@ -473,7 +473,7 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
 
         if force:
             time.sleep(1)
-            self._mqtt.loop_stop(force=True)
+            self._mqtt.loop_stop()
 
     def mqtt_publish_with_timestamp(self, topic, payload, retained=None, qos=0, allow_queueing=False, timestamp=None):
         if not payload:
