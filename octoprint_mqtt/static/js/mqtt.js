@@ -62,17 +62,13 @@ $(function() {
         };
 
         self.checkConnectionStatus = function() {
-            $.ajax({
-                url: API_BASEURL + "plugin/mqtt",
-                type: "GET",
-                dataType: "json",
-                success: function(response) {
+            OctoPrint.simpleApiGet("mqtt")
+                .done(function(response) {
                     self.updateConnectionStatus(response.connected);
-                },
-                error: function() {
+                })
+                .fail(function() {
                     self.updateConnectionStatus(false);
-                }
-            });
+                });
         };
 
         self.updateConnectionStatus = function(connected) {
@@ -82,15 +78,8 @@ $(function() {
         self.connectMqtt = function() {
             self.isConnecting(true);
 
-            $.ajax({
-                url: API_BASEURL + "plugin/mqtt",
-                type: "POST",
-                dataType: "json",
-                data: JSON.stringify({
-                    command: "connect"
-                }),
-                contentType: "application/json; charset=UTF-8",
-                success: function(response) {
+            OctoPrint.simpleApiCommand("mqtt", "connect")
+                .done(function(response) {
                     if (response.connected) {
                         new PNotify({
                             title: "MQTT Connected",
@@ -106,33 +95,25 @@ $(function() {
                         });
                         self.updateConnectionStatus(false);
                     }
-                },
-                error: function() {
+                })
+                .fail(function() {
                     new PNotify({
                         title: "MQTT Connection Failed",
                         text: "Failed to connect to MQTT broker. Check logs for details.",
                         type: "error"
                     });
                     self.updateConnectionStatus(false);
-                },
-                complete: function() {
+                })
+                .always(function() {
                     self.isConnecting(false);
-                }
-            });
+                });
         };
 
         self.disconnectMqtt = function() {
             self.isDisconnecting(true);
 
-            $.ajax({
-                url: API_BASEURL + "plugin/mqtt",
-                type: "POST",
-                dataType: "json",
-                data: JSON.stringify({
-                    command: "disconnect"
-                }),
-                contentType: "application/json; charset=UTF-8",
-                success: function(response) {
+            OctoPrint.simpleApiCommand("mqtt", "disconnect")
+                .done(function(response) {
                     if (!response.connected) {
                         new PNotify({
                             title: "MQTT Disconnected",
@@ -148,8 +129,8 @@ $(function() {
                         });
                         self.updateConnectionStatus(true);
                     }
-                },
-                error: function() {
+                })
+                .fail(function() {
                     new PNotify({
                         title: "MQTT Disconnection Failed",
                         text: "Failed to disconnect from MQTT broker. Check logs for details.",
@@ -157,11 +138,10 @@ $(function() {
                     });
                     // the real state is unknown after a failure, so ask the backend
                     self.checkConnectionStatus();
-                },
-                complete: function() {
+                })
+                .always(function() {
                     self.isDisconnecting(false);
-                }
-            });
+                });
         };
 
         // Handle plugin messages from backend for real-time connection status updates
