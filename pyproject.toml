@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "OctoPrint-MQTT"
-version = "0.8.18"
+version = "0.8.19"
 description = "An OctoPrint Plugin that adds support for MQTT to OctoPrint."
 authors = [
     { name = "Gina HÃ¤uÃŸge", email = "gina@octoprint.org" },
