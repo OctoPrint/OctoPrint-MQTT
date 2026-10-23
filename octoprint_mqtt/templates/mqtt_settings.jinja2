@@ -8,6 +8,14 @@
     <div class="tab-content">
         <div id="settings_plugin_mqtt_broker" class="tab-pane active">
             <div class="control-group">
+                <label class="control-label">{{ _('Connection Status') }}</label>
+                <div class="controls">
+                    <span style="display: inline-flex; align-items: center; gap: 5px;" data-bind="html: connectionStatusHtml"></span>
+                    <button class="btn btn-danger btn-small" data-bind="click: disconnectMqtt, enable: disconnectButtonEnabled, html: disconnectButtonHtml" style="margin-left: 10px;"></button>
+                    <button class="btn btn-success btn-small" data-bind="click: connectMqtt, enable: connectButtonEnabled, html: connectButtonHtml"></button>
+                </div>
+            </div>
+            <div class="control-group">
                 <label class="control-label">{{ _('Host') }}</label>
                 <div class="controls">
                     <input type="text" class="input-large" id="settings_plugin_mqtt_broker_url" data-bind="value: settings.broker.url" />
