@@ -215,7 +215,10 @@ class MqttPlugin(octoprint.plugin.SettingsPlugin,
             if "printTimeLeftOrigin" in print_job_progress and print_job_progress["printTimeLeftOrigin"] == "genius":
                 progress = round(float(print_job_progress["printTime"] or 0) / (float(print_job_progress["printTime"] or 0) + float(print_job_progress["printTimeLeft"])) * 100)
 
-            if print_job_progress.get("completion") in [None, 100]:
+            # completion is still None while the job is "Starting" (e.g. heating up),
+            # so only stop polling once the job is done or no longer active
+            job_active = self._printer.is_printing() or self._printer.is_paused()
+            if print_job_progress.get("completion") == 100 or not job_active:
                 if self.progress_timer is not None:
                     self.progress_timer.cancel()
                     self.progress_timer = None
